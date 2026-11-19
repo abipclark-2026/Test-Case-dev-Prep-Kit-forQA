@@ -1,0 +1,8 @@
+{
+  "story": "SD-102",
+  "title": "Browse and sort the product inventory",
+  "owner": "demo",
+  "phase": 3,
+  "csv": "SD-102-inventory-test-cases.csv",
+  "trace": "SD-102-traceability.json"
+}

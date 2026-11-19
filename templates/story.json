@@ -1,0 +1,8 @@
+{
+  "story": "<STORY-ID>",
+  "title": "<story title>",
+  "owner": "<your name or GitHub handle>",
+  "phase": 1,
+  "csv": "<STORY-ID>-test-cases.csv",
+  "trace": "<STORY-ID>-traceability.json"
+}

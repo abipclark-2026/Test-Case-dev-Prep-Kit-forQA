@@ -1,0 +1,28 @@
+# Runs the prep-check gate on every story folder (any folder with a story.json)
+# whenever someone opens or updates a PR, and on every push to main.
+# A NO-GO story fails the check, so it can't be merged until it's fixed.
+name: prep-check
+
+on:
+  pull_request:
+    paths:
+      - 'stories/**'
+      - 'examples/**'
+      - 'tools/**'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  prep-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No npm install needed: the checker has no dependencies.
+      - name: Check every story folder
+        run: node tools/check-all.mjs

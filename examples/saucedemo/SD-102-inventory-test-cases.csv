@@ -1,0 +1,111 @@
+Feature Name,Test Case Name,Preconditions,Test Case Steps,Expected Result,Spec,Time
+SD-100 SauceDemo Shopping Flow,"SD-102: Verify inventory page shows title and six products with image, name, description, price and Add to cart","1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Observe the page title.
+2. Count the product tiles.
+3. For each tile, check for image, name, description, price and an Add to cart button.","1. Title reads ""Products"".
+2. Six products are listed.
+3. Every tile shows all five elements. The six products are Sauce Labs Backpack, Bike Light, Bolt T-Shirt, Fleece Jacket, Onesie and Test.allTheThings() T-Shirt (Red).",https://www.saucedemo.com/inventory.html,0:10
+SD-100 SauceDemo Shopping Flow,SD-102: Verify sort control lists four options and defaults to Name (A to Z),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Open the sort control.
+2. Read the options in order.
+3. Read the currently selected option.","1. Dropdown opens.
+2. Options are: Name (A to Z), Name (Z to A), Price (low to high), Price (high to low).
+3. Name (A to Z) is selected and the list is in that order.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Name (A to Z) orders products alphabetically,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Sort is set to a non-default option (Price (high to low)).","1. Select Name (A to Z).
+2. Read the product names top to bottom.","1. List reorders.
+2. Order is: Backpack, Bike Light, Bolt T-Shirt, Fleece Jacket, Onesie, Test.allTheThings() T-Shirt (Red). Alphabetical by full product name.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Name (Z to A) orders products reverse alphabetically,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Select Name (Z to A).
+2. Read the product names top to bottom.","1. List reorders.
+2. Order is: Test.allTheThings() T-Shirt (Red), Onesie, Fleece Jacket, Bolt T-Shirt, Bike Light, Backpack.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Price (low to high) orders products by ascending price,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Prices: Onesie $7.99, Bike Light $9.99, Bolt T-Shirt $15.99, Test.allTheThings() T-Shirt $15.99, Backpack $29.99, Fleece Jacket $49.99.","1. Select Price (low to high).
+2. Read the prices top to bottom.","1. List reorders.
+2. Prices read $7.99, $9.99, $15.99, $15.99, $29.99, $49.99. The numeric order is correct (not text order, where $9.99 would sort after $49.99).",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Price (high to low) orders products by descending price,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Select Price (high to low).
+2. Read the prices top to bottom.","1. List reorders.
+2. Prices read $49.99, $29.99, $15.99, $15.99, $9.99, $7.99.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify products with equal prices fall back to Name (A to Z) order (boundary - price tie),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Two products share the price $15.99: Sauce Labs Bolt T-Shirt and Test.allTheThings() T-Shirt (Red).","1. Select Price (low to high).
+2. Note the order of the two $15.99 products.
+3. Select Price (high to low).
+4. Note the order of the two $15.99 products again.","1. List reorders.
+2. Bolt T-Shirt appears before Test.allTheThings() T-Shirt (Name A to Z fallback).
+3. List reorders.
+4. Bolt T-Shirt still appears before Test.allTheThings() T-Shirt. The tie order does not flip with the price direction.",https://www.saucedemo.com/inventory.html,0:10
+SD-100 SauceDemo Shopping Flow,SD-102: Verify selecting a sort option reorders the list without leaving the page,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Note the page URL.
+2. Select Price (low to high).
+3. Note the page URL and whether the page reloaded.","1. URL is the inventory page URL.
+2. List reorders.
+3. URL is unchanged and no page navigation occurred (answer in clarification log Q2: ""immediately"" means in place, no reload).",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Add to cart changes the button to Remove and shows a cart badge of 1,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart is empty.","1. Click Add to cart on Sauce Labs Backpack.
+2. Observe the button on that tile.
+3. Observe the cart icon.","1. Item is added.
+2. Button now reads ""Remove"".
+3. Cart badge shows 1.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify cart badge counts up to 6 when all products are added (boundary - maximum),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart is empty.","1. Click Add to cart on each of the six products in turn.
+2. After each click read the cart badge.","1. Each item is added.
+2. Badge reads 1, 2, 3, 4, 5, 6 in sequence and every button reads ""Remove"".",https://www.saucedemo.com/inventory.html,0:10
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Remove changes the button back to Add to cart and decreases the badge,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart contains Sauce Labs Backpack and Sauce Labs Bike Light (badge 2).","1. Click Remove on Sauce Labs Backpack.
+2. Observe the button on that tile.
+3. Observe the cart badge.","1. Item is removed.
+2. Button reads ""Add to cart"" again.
+3. Badge reads 1.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify no cart badge is shown after the last item is removed (boundary - empty cart),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart contains exactly one item (badge 1).","1. Click Remove on that item.
+2. Observe the cart icon.","1. Item is removed.
+2. No badge is shown on the cart icon (not a ""0"" badge).",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,"SD-102: Verify clicking a product name opens its detail page with name, description and price","1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Click the name ""Sauce Labs Backpack"".
+2. Observe the detail page.","1. Detail page opens.
+2. It shows the name, description and price ($29.99) of Sauce Labs Backpack.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Back to products returns to the inventory page,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Detail page of any product is open.","1. Click ""Back to products"".",1. Inventory page is displayed with all six products.,https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify cart contents persist between inventory and product detail pages,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart is empty.","1. Add Sauce Labs Backpack to the cart from the inventory page.
+2. Open the detail page of Sauce Labs Onesie.
+3. Click Back to products.
+4. Observe the badge and the Backpack button.","1. Badge reads 1.
+2. Detail page opens and the badge still reads 1.
+3. Inventory page is displayed.
+4. Badge reads 1 and the Backpack button reads ""Remove"".",https://www.saucedemo.com/inventory.html,0:10
+SD-100 SauceDemo Shopping Flow,SD-102: Verify clicking the cart icon opens the cart page,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart contains one item.",1. Click the cart icon.,1. Cart page opens and lists the item.,https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify Logout returns the user to the login page,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Open the menu.
+2. Click Logout.","1. Menu opens.
+2. Login page is displayed.",https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify a logged-out user cannot open the inventory page directly (Negative),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. User is logged out (use a fresh browser session).",1. Open https://www.saucedemo.com/inventory.html directly.,1. Login page is shown with an error that the inventory page can only be accessed when logged in. No products are displayed.,https://www.saucedemo.com/inventory.html,0:05
+SD-100 SauceDemo Shopping Flow,SD-102: Verify sorting keeps the Remove state of items already in the cart (interaction),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.
+3. Cart contains Sauce Labs Onesie (badge 1).","1. Select Price (high to low).
+2. Find the Onesie tile.
+3. Read its button and the cart badge.","1. List reorders.
+2. Onesie is last in the list.
+3. Its button still reads ""Remove"" and the badge still reads 1.",https://www.saucedemo.com/inventory.html,0:10
+SD-100 SauceDemo Shopping Flow,SD-102: Verify the sort option resets to Name (A to Z) after returning from a product detail page (state),"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
+2. Inventory page displayed.","1. Select Price (high to low).
+2. Click a product name to open its detail page.
+3. Click Back to products.
+4. Read the selected sort option and the list order.","1. List is in price-descending order.
+2. Detail page opens.
+3. Inventory page is displayed.
+4. Sort option reads Name (A to Z) and the list is in that order (answer in clarification log Q3).",https://www.saucedemo.com/inventory.html,0:10

@@ -1,0 +1,49 @@
+# Copy this file into your Playwright TEST repo at .github/workflows/playwright.yml.
+#
+# It is the "green in CI on the branch" step of the Phase 4 promotion bar:
+# every PR runs the full suite on a clean machine, so a spec that only passes
+# on one person's laptop can't be merged.
+#
+# Then protect main in GitHub: Settings → Branches → add a rule for main →
+# require a pull request with 1 approval, and require the "playwright" check to pass.
+name: playwright
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run tests
+        run: npx playwright test
+
+      # The HTML report is saved on every run, pass or fail,
+      # so anyone on the team can download it from the run's page.
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
