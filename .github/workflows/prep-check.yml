@@ -9,6 +9,7 @@ on:
       - 'stories/**'
       - 'examples/**'
       - 'tools/**'
+      - 'tests/**'
   push:
     branches: [main]
   workflow_dispatch:
@@ -24,5 +25,8 @@ jobs:
           node-version: 20
 
       # No npm install needed: the checker has no dependencies.
+      - name: Test the checker itself
+        run: node --test tests/prep-check.test.mjs
+
       - name: Check every story folder
         run: node tools/check-all.mjs

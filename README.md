@@ -69,23 +69,36 @@ prompt. Playwright is only needed if you carry on to Phase 4.
 3. **Phase 1.** Open `Phase 1 - Test Case Development/…-PROMPT.md`. Paste the
    "Prompt to give the agent" into your assistant and fill the placeholders,
    pasting your acceptance criteria **verbatim**. Answer the three stop-and-ask
-   gates. Save the CSV, then run:
+   gates. Save the CSV, and save the pasted AC unchanged as
+   `<STORY>-acceptance-criteria.md` (later gates check against it). Then run:
    `node tools/prep-check.mjs --phase 1 --csv <cases.csv>`
 4. **Phase 2.** Use the Phase 2 prompt with the CSV and the AC. It produces a
    coverage map and `<STORY>-traceability.json`. Run:
-   `node tools/prep-check.mjs --phase 2 --csv <cases.csv> --trace <traceability.json>`
+   `node tools/prep-check.mjs --phase 2 --csv <cases.csv> --trace <traceability.json> --ac <STORY>-acceptance-criteria.md --variants <a,b,c>`
    Send any gaps back to Phase 1.
 5. **Phase 3.** Raise the spec questions with whoever owns the spec, then use the
    Phase 3 prompt to apply the answers, fill or waive gaps and write the
    clarification log. Run `--phase 3` until it prints GO. This gate refuses open
-   gaps, bare waivers and unresolved "confirm with spec author" notes.
+   gaps, bare waivers, AC lines missing from the traceability file, and open
+   questions in any wording ("confirm with spec author", "TBD", "check with
+   the PO", "??").
 6. **Phase 4.** Triage with `automation-in-execution.md`, then use the skeleton
-   prompt for the cases you chose to automate.
+   prompt for the cases you chose to automate. Before the PR, run
+   `node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>`: it fails any
+   `test()` that has no `expect()` and is not parked with `test.fixme`.
 7. **Log what you learned** in `LESSONS.md`.
 
-`prep-check` defaults to SauceDemo's six user types as the "variants" every story
-must make a decision about. For your own product, pass your list:
-`--variants admin,editor,viewer`.
+**Variants** are the axes your product behaves differently on (user types,
+roles, browsers). There is no default: name yours with
+`--variants admin,editor,viewer`, or `--variants none` if a story has none.
+From Phase 3 on, a missing list is an error, so no story passes without
+someone deciding which variants apply. The SauceDemo example names its six
+user types in its `story.json`.
+
+**Testing the checker.** `node --test tests/prep-check.test.mjs` runs the
+checker's own tests (Node 18+, no install). Each test breaks one thing in a
+passing sample story and confirms the checker catches it for the right reason.
+CI runs them on every PR.
 
 ## Team setup: one shared home, no single machine
 
@@ -197,6 +210,7 @@ Phase 3 - Spec Clarification & Refinement/ Phase 3 prompt
 Phase 4 - Automation Skeletons/   skeleton prompt + automation guide
 tools/prep-check.mjs              GO / NO-GO checker (Node 18+, no dependencies)
 tools/check-all.mjs               runs prep-check on every story folder (used by CI)
+tests/                            tests for the checker (node --test)
 stories/                          one folder per story: the team's shared prep work
 templates/                        story.json, coverage matrix, test-repo CI + PR checklist
 .github/workflows/prep-check.yml  CI: blocks a PR when any story is NO-GO

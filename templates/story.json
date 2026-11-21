@@ -4,5 +4,10 @@
   "owner": "<your name or GitHub handle>",
   "phase": 1,
   "csv": "<STORY-ID>-test-cases.csv",
-  "trace": "<STORY-ID>-traceability.json"
+  "trace": "<STORY-ID>-traceability.json",
+  "ac": "<STORY-ID>-acceptance-criteria.md",
+  "variants": [
+    "<variant 1>",
+    "<variant 2>"
+  ]
 }

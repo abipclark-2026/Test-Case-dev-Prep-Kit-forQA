@@ -1,0 +1,21 @@
+{
+  "story": "XY-2",
+  "ac": [
+    { "id": "A1",  "text": "A valid code reduces the total by 10%.", "status": "OK", "cases": ["XY-2: Verify a valid code reduces the total by 10%"] },
+    { "id": "A2",  "text": "An invalid code shows \"Code not recognised\".", "status": "OK", "cases": ["XY-2: Verify an invalid code shows an error (Negative)"] },
+    { "id": "A2a", "text": "The total is unchanged after an invalid code.", "status": "OK", "cases": ["XY-2: Verify the total is unchanged after an invalid code (Negative)"] }
+  ],
+  "coverage": {
+    "variants": {
+      "guest":  { "status": "Covered", "cases": ["XY-2: Verify a valid code reduces the total by 10%"] },
+      "member": { "status": "N/A", "reason": "codes work the same for members (spec author, 2026-11-20)" }
+    },
+    "edge_categories": {
+      "boundary":               { "status": "Covered", "cases": ["XY-2: Verify a valid code reduces the total by 10%"] },
+      "empty-or-invalid-input": { "status": "Covered", "cases": ["XY-2: Verify an invalid code shows an error (Negative)"] },
+      "role-or-permission":     { "status": "N/A", "reason": "no roles on checkout" },
+      "state-or-timing":        { "status": "Deferred", "target": "XY-9" },
+      "interaction":            { "status": "Covered", "cases": ["XY-2: Verify the total is unchanged after an invalid code (Negative)"] }
+    }
+  }
+}

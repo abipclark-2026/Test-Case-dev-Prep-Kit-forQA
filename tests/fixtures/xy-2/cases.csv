@@ -1,0 +1,10 @@
+Feature Name,Test Case Name,Preconditions,Test Case Steps,Expected Result,Spec,Time
+XY-100 Checkout,XY-2: Verify a valid code reduces the total by 10%,"1. Cart total is $50.00.","1. Enter code SAVE10.
+2. Click Apply.","1. Code field shows SAVE10.
+2. Total reads $45.00. $50.00 x 0.9 = $45.00.",https://example.test/XY-2,0:05
+XY-100 Checkout,XY-2: Verify an invalid code shows an error (Negative),"1. Cart total is $50.00.","1. Enter code NOPE.
+2. Click Apply.","1. Code field shows NOPE.
+2. Error reads: Code not recognised.",https://example.test/XY-2,0:05
+XY-100 Checkout,XY-2: Verify the total is unchanged after an invalid code (Negative),"1. Cart total is $50.00.","1. Enter code NOPE.
+2. Click Apply.","1. Code field shows NOPE.
+2. Total still reads $50.00. Confirmed with the spec author on 2026-11-20.",https://example.test/XY-2,0:05

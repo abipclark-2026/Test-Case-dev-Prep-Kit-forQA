@@ -105,7 +105,7 @@ Plus the traceability JSON that `tools/prep-check.mjs` verifies.
 >    section from the cases and mark every call you are unsure of as a question
 >    for me.
 >
-> 9. **Run** `node tools/prep-check.mjs --phase 2 --csv <csv> --trace <json>` from
+> 9. **Run** `node tools/prep-check.mjs --phase 2 --csv <csv> --trace <json> --ac <STORY>-acceptance-criteria.md --variants <list>` from
 >    the kit folder, fix every ERROR, and report its GO / NO-GO line. Open GAP rows
 >    are expected at this phase and do not block it.
 >

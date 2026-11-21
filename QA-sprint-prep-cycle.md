@@ -239,7 +239,7 @@ matrix) + the **gap table**, the highest-value output of the whole cycle.
 **Loop-back:** gaps go back to Phase 1: write the missing cases, then re-map.
 
 **Exit gate:** every AC line is covered by a case OR consciously flagged as a
-waived/open gap; `node tools/prep-check.mjs --phase 2 --csv <file> --trace <json>`
+waived/open gap; `node tools/prep-check.mjs --phase 2 --csv <file> --trace <json> --ac <ac.md> --variants <list>`
 reports GO (open GAP rows are fine at this point).
 
 ---
@@ -270,8 +270,10 @@ assert in a test.
 
 **Exit gate:** every AC covered or consciously waived; no unresolved
 spec-author questions; the CSV parses clean; the clarification log is complete;
-`node tools/prep-check.mjs --phase 3 --csv <file> --trace <json>` reports GO
-(it refuses open GAP rows, bare waivers and unresolved "confirm" notes); and you
+`node tools/prep-check.mjs --phase 3 --csv <file> --trace <json> --ac <ac.md> --variants <list>`
+reports GO (it refuses open GAP rows, bare waivers, AC lines missing from the
+traceability file, a missing variant list, and open questions in any wording:
+"confirm with…", "TBD", "check with…", "??"); and you
 have added anything worth keeping to `LESSONS.md`.
 
 ---
@@ -372,10 +374,12 @@ downstream.
    clarification or an uncovered AC line past its phase without a conscious,
    logged waiver.
 7. **Gates are checked by a tool where a tool can check them.** Run
-   `tools/prep-check.mjs` at the end of Phases 1, 2 and 3. It covers the
-   mechanical half (CSV schema, duplicate names, AC coverage, an explicit
+   `tools/prep-check.mjs` at the end of Phases 1, 2 and 3, and `--phase 4` on
+   spec files before the PR. It covers the mechanical half (CSV schema,
+   duplicate names, AC coverage checked against the pasted AC, an explicit
    Covered / N/A-with-reason / Deferred call for every variant and edge
-   category, bare waivers, open "confirm" notes). It cannot judge whether a case
+   category, bare waivers, open questions, `test()` bodies with no assertion
+   that are not parked). It cannot judge whether a case
    is a good one; that stays with you and the reviewer. If the tool says NO-GO,
    fix the file. Don't edit the check to pass.
 8. **Skips and waivers carry a reason, written down.** A Waived AC line, a

@@ -118,9 +118,12 @@ a wrong case.
 >
 > 6b. **Update the traceability file** (`<STORY>-traceability.json`) to match: gap-fill
 >    cases move a row to `OK`; waived gaps get `Waived` + `reason`; re-mapped ACs are
->    updated. Then run `node tools/prep-check.mjs --phase 3 --csv <csv> --trace <json>`
+>    updated. Then run `node tools/prep-check.mjs --phase 3 --csv <csv> --trace <json> --ac <STORY>-acceptance-criteria.md --variants <list>`
 >    from the Prep Cycle kit folder and fix every ERROR. It refuses open GAP rows, bare
->    waivers, unmapped cases and unresolved "confirm with spec author" notes.
+>    waivers, unmapped cases, AC lines missing from the traceability file, and open
+>    questions in any wording ("confirm with...", "TBD", "check with...", "??"). When a
+>    question is answered, replace the note with the answer (e.g. "Confirmed with the
+>    spec author on <date>"), don't just delete it.
 >
 > 7. **Produce the upload-readiness report** with an explicit **GO / NO-GO**:
 >    - GO only if: every AC line is covered or consciously waived; no unresolved

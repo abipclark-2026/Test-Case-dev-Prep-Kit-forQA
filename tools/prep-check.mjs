@@ -5,16 +5,28 @@
  * Needs only Node 18+. No install, no dependencies.
  *
  *   node tools/prep-check.mjs --phase 1 --csv <cases.csv>
- *   node tools/prep-check.mjs --phase 2 --csv <cases.csv> --trace <story-traceability.json>
- *   node tools/prep-check.mjs --phase 3 --csv <cases.csv> --trace <story-traceability.json>
- *   add  --variants a,b,c  to override the variant list (default: the SauceDemo user types)
+ *   node tools/prep-check.mjs --phase 2 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c
+ *   node tools/prep-check.mjs --phase 3 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c
+ *   node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<file2.spec.ts>]
+ *
+ *   --ac        the story's acceptance criteria exactly as pasted from the ticket (a .md or .txt
+ *               file). Every AC id in it (A1, A2, A2a...) must appear in the traceability file,
+ *               so an AC line the assistant skipped cannot pass. If the file holds several
+ *               stories, only the section under the heading naming this story is used.
+ *               Missing: warning in Phase 2, error in Phase 3.
+ *   --variants  the axes your product behaves differently on (user types, roles, browsers...).
+ *               Every one needs a coverage decision. Use --variants none if the story has none.
+ *               Missing: warning in Phase 2, error in Phase 3.
  *
  * Phase 1  CSV is well-formed (header, 7 columns, unique names, Spec + Time present,
  *          parallel numbering). Open "confirm with spec author" notes are listed.
  * Phase 2  Adds the traceability file: every AC has a status, every case maps to an AC,
  *          every case named in the file exists. GAP rows are allowed here.
- * Phase 3  Strict. No GAP rows, no open "confirm with spec author" notes, every
- *          Waived row has a reason, every Deferred row names where it went.
+ * Phase 3  Strict. No GAP rows, no open questions left in the cases ("confirm with spec author",
+ *          "TBD", "check with the PO", "???"...), every Waived row has a reason, every Deferred
+ *          row names where it went.
+ * Phase 4  Spec files: every test() reaches an expect() or is parked with test.fixme / test.skip.
+ *          A test() with an empty or TODO-only body passes and counts as green coverage.
  *
  * Exit code 0 = GO, 1 = NO-GO (errors), 2 = bad usage. Warnings never block.
  *
@@ -48,10 +60,22 @@ import { parseArgs } from 'node:util';
 const HEADER = ['Feature Name', 'Test Case Name', 'Preconditions', 'Test Case Steps', 'Expected Result', 'Spec', 'Time'];
 const STATUSES = ['OK', 'GAP', 'Waived', 'Deferred'];
 // A "variant" is any axis your story can behave differently on: user type, role, browser, locale.
-// The default list is SauceDemo's six built-in users. Override with --variants a,b,c.
-let VARIANTS = ['standard_user', 'locked_out_user', 'problem_user', 'performance_glitch_user', 'error_user', 'visual_user'];
+// There is no default: each story names its own with --variants (or "variants" in story.json).
+let VARIANTS = null;
 const EDGE_CATEGORIES = ['boundary', 'empty-or-invalid-input', 'role-or-permission', 'state-or-timing', 'interaction'];
-const CONFIRM_RE = /confirm with (the )?spec author/i;
+// Wording that means a question is still open. Resolved notes ("confirmed with the spec author
+// on 11/20") do not match, because "confirmed" is not "confirm with".
+const OPEN_NOTE_RES = [
+  /\bconfirm with\b/i,                    // confirm with spec author / the PO / dev
+  /\bcheck with\b/i,                      // check with the PO
+  /\b(TBD|TBC|TODO|FIXME)\b/,              // capitals only, so "todo list" in copy is fine
+  /\bto be (confirmed|decided|determined)\b/i,
+  /\b(pending|awaiting) (confirmation|clarification|an answer)\b/i,
+  /\?\?/,                                  // ?? or ???
+];
+const openNote = (text) => OPEN_NOTE_RES.some((re) => re.test(text));
+// An AC id at the start of a line: "A1.", "- A3a.", "  * A12)".
+const AC_ID_RE = /^\s*(?:[-*+]\s+)?\*{0,2}(A\d+[a-z]?)\*{0,2}[.):]\s/gm;
 
 const errors = [];
 const warnings = [];
@@ -122,7 +146,7 @@ function checkCsv(path) {
     if (!e) warn(`${tag}: Expected Result is not a numbered list.`);
     if (s && e && s.length !== e.length) warn(`${tag}: ${s.length} steps but ${e.length} expected results (should be parallel).`);
     if (pre && !listNumbers(pre)) warn(`${tag}: Preconditions are not a numbered list.`);
-    cases.push({ name, line, open: CONFIRM_RE.test(exp) || CONFIRM_RE.test(steps) || CONFIRM_RE.test(pre) });
+    cases.push({ name, line, open: openNote(exp) || openNote(steps) || openNote(pre) });
   });
   return cases;
 }
@@ -138,7 +162,9 @@ function checkCoverage(cov, names, phase) {
     missing('No "coverage" section in the traceability file. Add "variants" and "edge_categories" (shape in the header).');
     return;
   }
-  const groups = [['variants', VARIANTS], ['edge_categories', EDGE_CATEGORIES]];
+  const groups = [['edge_categories', EDGE_CATEGORIES]];
+  if (VARIANTS === null) missing('No variant list given. Pass --variants a,b,c (or "variants" in story.json), or --variants none if this story has no variants.');
+  else if (VARIANTS.length) groups.unshift(['variants', VARIANTS]);
   for (const [key, required] of groups) {
     const g = cov[key];
     if (!g || typeof g !== 'object') { missing(`coverage.${key} is missing.`); continue; }
@@ -158,7 +184,34 @@ function checkCoverage(cov, names, phase) {
   }
 }
 
-function checkTrace(path, cases, phase) {
+/**
+ * Read the AC ids from the pasted acceptance criteria. If the file covers several stories, use
+ * only the section whose heading names this story (up to the next heading naming another story).
+ */
+function readAcIds(path, story) {
+  let text;
+  try { text = readFileSync(path, 'utf8'); } catch (e) { err(`Cannot read AC file: ${e.message}`); return null; }
+  const lines = text.split(/\r?\n/);
+  const isStoryHeading = (l) => /^#{1,6}\s.*\b[A-Z][A-Z0-9]+-\d+\b/.test(l);
+  const esc = String(story ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const start = story ? lines.findIndex((l) => isStoryHeading(l) && new RegExp(`\\b${esc}\\b`).test(l)) : -1;
+  let section = text;
+  if (start >= 0) {
+    const rest = lines.slice(start + 1);
+    const end = rest.findIndex(isStoryHeading);
+    section = (end >= 0 ? rest.slice(0, end) : rest).join('\n');
+  } else if (lines.some(isStoryHeading)) {
+    err(`AC file has story headings but none names ${story} (wrong file?). Add a heading like "## ${story}: <title>".`);
+    return null;
+  }
+  const ids = [...section.matchAll(AC_ID_RE)].map((m) => m[1]);
+  if (!ids.length) { err(`AC file: no AC ids found (expected lines starting "A1.", "A2." ...). Number the AC first.`); return null; }
+  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+  for (const d of new Set(dupes)) err(`AC file: AC id ${d} appears more than once.`);
+  return new Set(ids);
+}
+
+function checkTrace(path, cases, phase, acPath) {
   let t;
   try { t = JSON.parse(readFileSync(path, 'utf8')); } catch (e) { err(`Cannot read traceability file: ${e.message}`); return; }
   if (!Array.isArray(t.ac) || !t.ac.length) { err('Traceability file needs a non-empty "ac" array.'); return; }
@@ -186,6 +239,15 @@ function checkTrace(path, cases, phase) {
     if (a.status === 'Waived' && !String(a.reason ?? '').trim()) err(`${tag}: Waived needs a "reason". "Forgot" is not a reason.`);
     if (a.status === 'Deferred' && !String(a.target ?? '').trim()) err(`${tag}: Deferred needs a "target" (the story or phase it moved to).`);
   }
+  if (acPath) {
+    const source = readAcIds(acPath, t.story);
+    if (source) {
+      for (const id of source) if (!ids.has(id)) err(`AC ${id}: in the acceptance criteria but missing from the traceability file. Every AC line needs a status.`);
+      for (const id of ids) if (!source.has(id)) err(`AC ${id}: in the traceability file but not in the acceptance criteria (typo, or AC changed?).`);
+    }
+  } else {
+    (phase >= 3 ? err : warn)('No --ac file given, so the traceability file cannot be checked against the real AC. Pass --ac <the pasted acceptance criteria>.');
+  }
   const allowed = new Map((t.unmapped_cases ?? []).map((u) => [u.name, u.reason]));
   for (const [n, reason] of allowed) {
     if (!names.has(n)) err(`unmapped_cases names a case not in the CSV: "${n.slice(0, 70)}".`);
@@ -201,25 +263,68 @@ function checkTrace(path, cases, phase) {
   console.log(`AC rows: ${t.ac.length}  (${STATUSES.map((s) => `${s} ${counts[s]}`).join(', ')})`);
 }
 
+/**
+ * Phase 4: every test() body must reach an expect() or be parked. Comments are stripped first, so
+ * "// TODO: expect(...)" does not count as an assertion. A file wrapped in test.describe.skip is
+ * parked as a whole.
+ */
+function checkSpec(path) {
+  let text;
+  try { text = readFileSync(path, 'utf8'); } catch (e) { err(`Cannot read spec: ${e.message}`); return; }
+  const code = text
+    .replace(/\/\*[\s\S]*?\*\//g, '')          // block comments
+    .replace(/(^|[^:\\])\/\/.*$/gm, '$1');      // line comments (not the // in https://)
+  if (/\btest\.describe\.skip\s*\(/.test(code) && !/\btest\.describe\s*\(/.test(code)) {
+    console.log(`${path}: whole file parked with test.describe.skip`);
+    return;
+  }
+  const starts = [...code.matchAll(/(?<![.\w])test\s*\(\s*(['"`])((?:(?!\1).)*)\1/g)];
+  if (!starts.length) { warn(`${path}: no test() found.`); return; }
+  let asserting = 0, parked = 0;
+  starts.forEach((m, i) => {
+    const body = code.slice(m.index, i + 1 < starts.length ? starts[i + 1].index : code.length);
+    const lineNo = code.slice(0, m.index).split('\n').length;
+    const title = m[2].slice(0, 60);
+    if (/\btest\.(fixme|skip)\s*\(/.test(body)) parked++;
+    else if (/\bexpect(\.\w+)?\s*\(/.test(body)) asserting++;
+    else err(`${path}:${lineNo} "${title}": test() has no expect() and is not parked. It will pass and count as green. Add an assertion or test.fixme(true, 'reason').`);
+  });
+  console.log(`${path}: ${starts.length} test(s): ${asserting} asserting, ${parked} parked`);
+}
+
 // ---- main ----
 let values;
 try {
-  ({ values } = parseArgs({ options: { phase: { type: 'string' }, csv: { type: 'string' }, trace: { type: 'string' }, variants: { type: 'string' } } }));
+  ({ values } = parseArgs({ options: {
+    phase: { type: 'string' }, csv: { type: 'string' }, trace: { type: 'string' },
+    ac: { type: 'string' }, variants: { type: 'string' }, spec: { type: 'string' },
+  } }));
 } catch (e) { console.error(e.message); process.exit(2); }
-if (values.variants) VARIANTS = values.variants.split(',').map((s) => s.trim()).filter(Boolean);
+if (values.variants !== undefined) {
+  VARIANTS = values.variants.trim().toLowerCase() === 'none' ? [] : values.variants.split(',').map((s) => s.trim()).filter(Boolean);
+}
 const phase = Number(values.phase);
+const usage = 'Usage:\n  node tools/prep-check.mjs --phase 1 --csv <cases.csv>\n  node tools/prep-check.mjs --phase 2|3 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c|none\n  node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<more>]';
+if (phase === 4) {
+  if (!values.spec) { console.error(usage); process.exit(2); }
+  for (const f of values.spec.split(',').map((s) => s.trim()).filter(Boolean)) checkSpec(f);
+  for (const w of warnings) console.log(`WARN  ${w}`);
+  for (const e of errors) console.log(`ERROR ${e}`);
+  console.log(`\nPhase 4: ${errors.length ? 'NO-GO' : 'GO'}  (${errors.length} error(s), ${warnings.length} warning(s))`);
+  process.exit(errors.length ? 1 : 0);
+}
 if (![1, 2, 3].includes(phase) || !values.csv || (phase > 1 && !values.trace)) {
-  console.error('Usage:\n  node tools/prep-check.mjs --phase 1 --csv <cases.csv>\n  node tools/prep-check.mjs --phase 2|3 --csv <cases.csv> --trace <traceability.json> [--variants a,b,c]');
+  console.error(usage);
   process.exit(2);
 }
 
 const cases = checkCsv(values.csv);
 console.log(`Cases: ${cases.length}`);
-if (phase > 1 && cases.length) checkTrace(values.trace, cases, phase);
+if (phase > 1 && cases.length) checkTrace(values.trace, cases, phase, values.ac);
 
 const open = cases.filter((c) => c.open);
 if (open.length) {
-  const msg = `${open.length} case(s) still carry a "confirm with spec author" note: ${open.map((c) => `row ${c.line}`).join(', ')}.`;
+  const msg = `${open.length} case(s) still carry an open question ("confirm with...", "TBD", "??"...): ${open.map((c) => `row ${c.line}`).join(', ')}.`;
   if (phase >= 3) err(`${msg} Close each with the author's answer (see the Spec Clarification ticket).`);
   else warn(`${msg} Each needs a Spec Clarification ticket.`);
 }

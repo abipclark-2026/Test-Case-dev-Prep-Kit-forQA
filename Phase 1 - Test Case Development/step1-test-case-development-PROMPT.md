@@ -232,6 +232,10 @@ double quotes. Keep every row on the 7-column schema. Produce a real `.csv` file
 > into the traceability file.
 >
 > **Output:**
+> - Save the Preconditions + Acceptance Criteria I pasted, **unchanged**, as
+>   `<STORY>-acceptance-criteria.md` in the output folder, with a heading
+>   `## <STORY>: <title>` and each AC line starting with its id (`A1.`, `A2a.`).
+>   The Phase 2 and 3 checks compare the traceability file against this file.
 > - Write a UTF-8 `.csv` to the output folder named
 >   `<STORY>-<short-slug>-test-cases.csv`.
 > - Quote every cell that contains a comma or newline; keep the exact 7-column

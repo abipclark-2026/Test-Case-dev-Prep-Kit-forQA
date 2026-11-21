@@ -7,6 +7,7 @@ Phases 1–3 produce lives here and goes through a pull request, like code.
 stories/
   SD-201/
     story.json                      which gate the story must pass right now
+    SD-201-acceptance-criteria.md   the AC exactly as pasted (Phase 1)
     SD-201-test-cases.csv           Phase 1
     SD-201-traceability.json        Phase 2 (finished in Phase 3)
     SD-201-coverage-questions.md    Phase 1 Gates 0 and A

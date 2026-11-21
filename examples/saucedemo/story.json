@@ -4,5 +4,17 @@
   "owner": "demo",
   "phase": 3,
   "csv": "SD-102-inventory-test-cases.csv",
-  "trace": "SD-102-traceability.json"
+  "trace": "SD-102-traceability.json",
+  "ac": "00-input-acceptance-criteria.md",
+  "variants": [
+    "standard_user",
+    "locked_out_user",
+    "problem_user",
+    "performance_glitch_user",
+    "error_user",
+    "visual_user"
+  ],
+  "specs": [
+    "skeleton/inventory.spec.ts"
+  ]
 }
