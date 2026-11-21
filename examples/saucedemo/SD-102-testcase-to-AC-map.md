@@ -18,14 +18,14 @@ logged in as standard_user ──► inventory page (Name A→Z by default)
         │
         ├─ choose sort option ──► list reorders in place (A3)
         │       ├─ Name options  → alphabetical by name (A3a)
-        │       └─ Price options → numeric by price; ties → Name A→Z (A3b, Q1)
+        │       └─ Price options → numeric by price; ties → Name A→Z (A3b, SD-102-C1)
         │
         ├─ Add to cart ──► button → "Remove", badge +1 (A4)
         │       └─ Remove ──► button → "Add to cart", badge −1 (A4a)
         │             └─ cart now empty → no badge at all (A4b)
         │
         ├─ click product name ──► detail page ──► Back to products (A5)
-        │       └─ cart kept; sort resets to default (A6, Q3)
+        │       └─ cart kept; sort resets to default (A6, SD-102-C3)
         │
         ├─ cart icon ──► cart page (A7)
         └─ menu → Logout ──► login page (A8)
@@ -61,7 +61,7 @@ logged in as standard_user ──► inventory page (Name A→Z by default)
 | 4 | Verify Name (Z to A) orders products reverse alphabetically | A3, A3a | Name descending |
 | 5 | Verify Price (low to high) orders products by ascending price | A3, A3b | Price ascending (numeric, not text) |
 | 6 | Verify Price (high to low) orders products by descending price | A3, A3b | Price descending |
-| 7 | Verify products with equal prices fall back to Name (A to Z) order (boundary - price tie) | A3b | Tie-break rule (answer in clarification log Q1) |
+| 7 | Verify products with equal prices fall back to Name (A to Z) order (boundary - price tie) | A3b | Tie-break rule (answer in clarification SD-102-C1) |
 | 8 | Verify selecting a sort option reorders the list without leaving the page | A3 | "Immediately" made testable |
 | 9 | Verify Add to cart changes the button to Remove and shows a cart badge of 1 | A4 | Add flow |
 | 10 | Verify cart badge counts up to 6 when all products are added (boundary - maximum) | A4 | Badge at the maximum |

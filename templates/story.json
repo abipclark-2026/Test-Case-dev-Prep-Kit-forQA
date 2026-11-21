@@ -6,6 +6,7 @@
   "csv": "<STORY-ID>-test-cases.csv",
   "trace": "<STORY-ID>-traceability.json",
   "ac": "<STORY-ID>-acceptance-criteria.md",
+  "clarifications": "<STORY-ID>-clarification-log.md",
   "variants": [
     "<variant 1>",
     "<variant 2>"

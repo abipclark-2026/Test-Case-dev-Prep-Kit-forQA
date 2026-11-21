@@ -129,6 +129,11 @@ test.describe('<Area> - <Behavior> (<STORY-ID>)', () => {
 >    file is scaffold-only, use `test.describe.skip`. **Never** emit a `test()`
 >    whose body has no assertion and no `fixme`. That PASSES green and is
 >    recorded as false coverage.
+>    **Cases still waiting on a clarification** (their CSV row cites an `Open`
+>    ID such as `SD-104-C1`) are always parked with
+>    `test.fixme(true, 'blocked on SD-104-C1')`, even when everything else in
+>    the file is live. `prep-check --phase 4 --csv <csv> --clarifications <log>`
+>    fails any test for a blocked case that is not parked.
 >
 > 7. **Compile-safety:** the files must typecheck and collect. After writing,
 >    report the paths, the test count per file, how many assertions are parked vs.
@@ -141,9 +146,12 @@ test.describe('<Area> - <Behavior> (<STORY-ID>)', () => {
 
 ## After the skeleton (handing back to the guide)
 
-1. Write the real **body** (selectors in page objects; fill the Assert layer when
-   the feature is testable).
-2. **Validate**: green locally 2–3×, then green in CI on the branch.
+1. Write the real **body** with `step5-body-and-validation-PROMPT.md`
+   (selectors in page objects; fill the Assert layer when the feature is
+   testable). It stops at Gate C (code review) and Gate D (run and error review)
+   for every batch.
+2. **Validate**: Gate E (3 clean local runs and `prep-check --phase 4 --results`
+   GO), then green in CI on the branch.
 3. **Promote**: commit + PR → reviewer reviews → reviewer merges to `main`.
 4. **Bookkeeping**: coverage-matrix row + tally line in the same commit; cases
    synced to your test-management tool.

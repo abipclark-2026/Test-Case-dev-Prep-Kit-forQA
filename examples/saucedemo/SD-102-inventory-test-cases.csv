@@ -43,7 +43,7 @@ SD-100 SauceDemo Shopping Flow,SD-102: Verify selecting a sort option reorders t
 2. Select Price (low to high).
 3. Note the page URL and whether the page reloaded.","1. URL is the inventory page URL.
 2. List reorders.
-3. URL is unchanged and no page navigation occurred (answer in clarification log Q2: ""immediately"" means in place, no reload).",https://www.saucedemo.com/inventory.html,0:05
+3. URL is unchanged and no page navigation occurred (answer in clarification SD-102-C2: ""immediately"" means in place, no reload).",https://www.saucedemo.com/inventory.html,0:05
 SD-100 SauceDemo Shopping Flow,SD-102: Verify Add to cart changes the button to Remove and shows a cart badge of 1,"1. Public demo site https://www.saucedemo.com/, logged in as standard_user (accepted usernames and the shared password are listed on the login page).
 2. Inventory page displayed.
 3. Cart is empty.","1. Click Add to cart on Sauce Labs Backpack.
@@ -108,4 +108,4 @@ SD-100 SauceDemo Shopping Flow,SD-102: Verify the sort option resets to Name (A 
 4. Read the selected sort option and the list order.","1. List is in price-descending order.
 2. Detail page opens.
 3. Inventory page is displayed.
-4. Sort option reads Name (A to Z) and the list is in that order (answer in clarification log Q3).",https://www.saucedemo.com/inventory.html,0:10
+4. Sort option reads Name (A to Z) and the list is in that order (answer in clarification SD-102-C3).",https://www.saucedemo.com/inventory.html,0:10

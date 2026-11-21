@@ -1,0 +1,521 @@
+{
+ "config": {
+  "argv": [
+   "/opt/node22/bin/node",
+   "/tmp/pwt/node_modules/playwright/cli.js",
+   "test",
+   "--workers=1",
+   "--repeat-each=3"
+  ],
+  "configFile": "/project/playwright.config.js",
+  "rootDir": "/project",
+  "failOnFlakyTests": false,
+  "forbidOnly": false,
+  "fullyParallel": false,
+  "globalSetup": null,
+  "globalTeardown": null,
+  "globalTimeout": 0,
+  "grep": {},
+  "grepInvert": null,
+  "maxFailures": 0,
+  "metadata": {
+   "actualWorkers": 1
+  },
+  "preserveOutput": "always",
+  "projects": [
+   {
+    "outputDir": "/project/test-results",
+    "repeatEach": 3,
+    "retries": 1,
+    "metadata": {
+     "actualWorkers": 1
+    },
+    "id": "",
+    "name": "",
+    "testDir": "/project",
+    "testIgnore": [],
+    "testMatch": [
+     "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+    ],
+    "timeout": 30000
+   }
+  ],
+  "quiet": false,
+  "reporter": [
+   [
+    "json",
+    {
+     "outputFile": "results-flaky.json"
+    }
+   ]
+  ],
+  "reportSlowTests": {
+   "max": 5,
+   "threshold": 300000
+  },
+  "shard": null,
+  "tags": [],
+  "updateSnapshots": "missing",
+  "updateSourceMethod": "patch",
+  "version": "1.63.0",
+  "workers": 1,
+  "webServer": null
+ },
+ "suites": [
+  {
+   "title": "checkout.spec.js",
+   "file": "checkout.spec.js",
+   "column": 0,
+   "line": 0,
+   "specs": [],
+   "suites": [
+    {
+     "title": "Discount codes (XY-2)",
+     "file": "checkout.spec.js",
+     "line": 2,
+     "column": 6,
+     "specs": [
+      {
+       "title": "XY-2: Verify a valid code reduces the total by 10%",
+       "ok": true,
+       "tags": [],
+       "tests": [
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 0,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 6,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:41.314Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "expected"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 2,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 5,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:42.271Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "expected"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 4,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 5,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:43.243Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "expected"
+        }
+       ],
+       "id": "24e4b3ac21f7f473b7e5-6cdfc00c9effffb68e29",
+       "file": "checkout.spec.js",
+       "line": 3,
+       "column": 3
+      },
+      {
+       "title": "XY-2: Verify an invalid code shows an error (Negative)",
+       "ok": true,
+       "tags": [],
+       "tests": [
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 0,
+           "parallelIndex": 0,
+           "status": "failed",
+           "duration": 6,
+           "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n    at /tmp/pwt/checkout.spec.js:8:62",
+            "location": {
+             "file": "/tmp/pwt/checkout.spec.js",
+             "column": 62,
+             "line": 8
+            },
+            "snippet": "   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {"
+           },
+           "errors": [
+            {
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "column": 62,
+              "line": 8
+             },
+             "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\n   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {\n    at /tmp/pwt/checkout.spec.js:8:62"
+            }
+           ],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:41.363Z",
+           "annotations": [],
+           "attachments": [
+            {
+             "name": "error-context",
+             "contentType": "text/markdown",
+             "path": "/tmp/pwt/test-results/checkout-Discount-codes-XY-8a5af-de-shows-an-error-Negative-/error-context.md"
+            }
+           ],
+           "errorLocation": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "column": 62,
+            "line": 8
+           }
+          },
+          {
+           "workerIndex": 1,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 8,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 1,
+           "startTime": "2026-11-21T06:41:41.809Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "flaky"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 2,
+           "parallelIndex": 0,
+           "status": "failed",
+           "duration": 4,
+           "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n    at /tmp/pwt/checkout.spec.js:8:62",
+            "location": {
+             "file": "/tmp/pwt/checkout.spec.js",
+             "column": 62,
+             "line": 8
+            },
+            "snippet": "   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {"
+           },
+           "errors": [
+            {
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "column": 62,
+              "line": 8
+             },
+             "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\n   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {\n    at /tmp/pwt/checkout.spec.js:8:62"
+            }
+           ],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:42.308Z",
+           "annotations": [],
+           "attachments": [
+            {
+             "name": "error-context",
+             "contentType": "text/markdown",
+             "path": "/tmp/pwt/test-results/checkout-Discount-codes-XY-8a5af-de-shows-an-error-Negative--repeat1/error-context.md"
+            }
+           ],
+           "errorLocation": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "column": 62,
+            "line": 8
+           }
+          },
+          {
+           "workerIndex": 3,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 7,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 1,
+           "startTime": "2026-11-21T06:41:42.734Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "flaky"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [],
+         "expectedStatus": "passed",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 4,
+           "parallelIndex": 0,
+           "status": "failed",
+           "duration": 8,
+           "error": {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n    at /tmp/pwt/checkout.spec.js:8:62",
+            "location": {
+             "file": "/tmp/pwt/checkout.spec.js",
+             "column": 62,
+             "line": 8
+            },
+            "snippet": "   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {"
+           },
+           "errors": [
+            {
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "column": 62,
+              "line": 8
+             },
+             "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\n   6 |   test('XY-2: Verify an invalid code shows an error (Negative)', async ({}, testInfo) => {\n   7 |     if (process.env.MODE === 'fail') expect('Code not found').toBe('Code not recognised');\n>  8 |     if (process.env.MODE === 'flaky') expect(testInfo.retry).toBe(1);\n     |                                                              ^\n   9 |     expect('Code not recognised').toBe('Code not recognised');\n  10 |   });\n  11 |   test('XY-2: Verify the total is unchanged after an invalid code (Negative)', async () => {\n    at /tmp/pwt/checkout.spec.js:8:62"
+            }
+           ],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:43.288Z",
+           "annotations": [],
+           "attachments": [
+            {
+             "name": "error-context",
+             "contentType": "text/markdown",
+             "path": "/tmp/pwt/test-results/checkout-Discount-codes-XY-8a5af-de-shows-an-error-Negative--repeat2/error-context.md"
+            }
+           ],
+           "errorLocation": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "column": 62,
+            "line": 8
+           }
+          },
+          {
+           "workerIndex": 5,
+           "parallelIndex": 0,
+           "status": "passed",
+           "duration": 8,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 1,
+           "startTime": "2026-11-21T06:41:43.693Z",
+           "annotations": [],
+           "attachments": []
+          }
+         ],
+         "status": "flaky"
+        }
+       ],
+       "id": "24e4b3ac21f7f473b7e5-944cab8070194fd54899",
+       "file": "checkout.spec.js",
+       "line": 6,
+       "column": 3
+      },
+      {
+       "title": "XY-2: Verify the total is unchanged after an invalid code (Negative)",
+       "ok": true,
+       "tags": [],
+       "tests": [
+        {
+         "timeout": 30000,
+         "annotations": [
+          {
+           "type": "fixme",
+           "description": "blocked on page objects",
+           "location": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "line": 12,
+            "column": 10
+           }
+          }
+         ],
+         "expectedStatus": "skipped",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 1,
+           "parallelIndex": 0,
+           "status": "skipped",
+           "duration": 3,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:41.864Z",
+           "annotations": [
+            {
+             "type": "fixme",
+             "description": "blocked on page objects",
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "line": 12,
+              "column": 10
+             }
+            }
+           ],
+           "attachments": []
+          }
+         ],
+         "status": "skipped"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [
+          {
+           "type": "fixme",
+           "description": "blocked on page objects",
+           "location": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "line": 12,
+            "column": 10
+           }
+          }
+         ],
+         "expectedStatus": "skipped",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 3,
+           "parallelIndex": 0,
+           "status": "skipped",
+           "duration": 2,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:42.776Z",
+           "annotations": [
+            {
+             "type": "fixme",
+             "description": "blocked on page objects",
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "line": 12,
+              "column": 10
+             }
+            }
+           ],
+           "attachments": []
+          }
+         ],
+         "status": "skipped"
+        },
+        {
+         "timeout": 30000,
+         "annotations": [
+          {
+           "type": "fixme",
+           "description": "blocked on page objects",
+           "location": {
+            "file": "/tmp/pwt/checkout.spec.js",
+            "line": 12,
+            "column": 10
+           }
+          }
+         ],
+         "expectedStatus": "skipped",
+         "projectId": "",
+         "projectName": "",
+         "results": [
+          {
+           "workerIndex": 5,
+           "parallelIndex": 0,
+           "status": "skipped",
+           "duration": 2,
+           "errors": [],
+           "stdout": [],
+           "stderr": [],
+           "retry": 0,
+           "startTime": "2026-11-21T06:41:43.746Z",
+           "annotations": [
+            {
+             "type": "fixme",
+             "description": "blocked on page objects",
+             "location": {
+              "file": "/tmp/pwt/checkout.spec.js",
+              "line": 12,
+              "column": 10
+             }
+            }
+           ],
+           "attachments": []
+          }
+         ],
+         "status": "skipped"
+        }
+       ],
+       "id": "24e4b3ac21f7f473b7e5-9136ce1385ce8309b855",
+       "file": "checkout.spec.js",
+       "line": 11,
+       "column": 3
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "errors": [],
+ "stats": {
+  "startTime": "2026-11-21T06:41:40.940Z",
+  "duration": 2853.63,
+  "expected": 3,
+  "skipped": 3,
+  "unexpected": 0,
+  "flaky": 3
+ }
+}

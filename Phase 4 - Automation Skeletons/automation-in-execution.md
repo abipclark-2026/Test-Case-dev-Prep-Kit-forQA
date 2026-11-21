@@ -28,9 +28,9 @@ sprint test cases
       │
       ▼
 [3] BODY ────────────────► write the assertions; fill in the page-object selectors
-      │
+      │                     Gate C: review the code   Gate D: review every run's errors
       ▼
-[4] VALIDATE ────────────► green locally (2–3 runs) ─► green in CI on the branch
+[4] VALIDATE ────────────► Gate E: 3 clean local runs + prep-check GO ─► green in CI on the branch
       │
       ▼
 [5] PROMOTE ─────────────► commit + PR ─► reviewer reviews ─► reviewer merges to main ─► in regression
@@ -128,16 +128,43 @@ Fill in Act and Assert. Selectors live in a page object, never inline in the
 spec. Prefer role, label and test-id locators; where you must use a fragile
 selector, mark it `// SELECTOR_DEBT` so it surfaces in cleanup passes.
 
+With an AI assistant, use `step5-body-and-validation-PROMPT.md`. It works in
+small batches and stops twice per batch:
+
+- **Gate C — code review, before anything is saved.** You see every change in
+  full, a locator table (element, locator, how it was confirmed) and an
+  assertion table (each `expect` and the CSV expected result it proves).
+- **Gate D — run and error review, after every run.** Each failure comes back
+  verbatim with a likely cause (test bug, product bug, environment, don't know)
+  and a proposed next step. You choose: apply the fix (back through Gate C),
+  park it as a product defect with `test.fixme(true, 'defect <ID>')`, or
+  investigate headed / with a trace first.
+
+**A failing test may be the bug report.** Never make it pass by changing the
+expected value to whatever the app showed, loosening an assertion, adding
+sleeps or retries, or wrapping it in `try/catch`. If the CSV case itself is
+wrong, fix it through Phase 3 first, then the test.
+
 ---
 
 ## Step 4 — validate (the first half of the promotion bar)
 
-1. **Green locally, 2–3 consecutive runs.** Run it a few times to shake out
-   flake:
+1. **Gate E — green locally, 3 runs, checked by the tool.** Before any PR, run
+   from the test repo, with the branch current with `main`:
    ```sh
-   npx playwright test tests/<area>/<flow>.spec.ts --repeat-each=3
+   npx tsc --noEmit
+   npx playwright test <all specs for the story> --repeat-each=3 --reporter=json > <STORY>-results.json
+   node <kit>/tools/prep-check.mjs --phase 4 --spec <specs> --csv <csv> --clarifications <log> --results <STORY>-results.json
    ```
-   If it fails, find the cause; do not paper over it.
+   `<kit>` is the path to this kit's folder (for example
+   `../Test-Case-dev-Prep-Kit-forQA`), or copy `tools/prep-check.mjs` into the
+   test repo; it has no dependencies. `prep-check` prints GO only when every
+   test in the specs ran, every test that is not parked passed in all 3 runs,
+   nothing was flaky, and the run really used `--repeat-each=3`. A spec edited
+   after the run gets a warning: re-run so the results match the code. If it
+   fails, find the cause; do not paper over it. A flaky test is a failing test.
+   Add `*-results.json` to the test repo's `.gitignore`: the results file is
+   evidence for the PR description, not something to commit.
 2. **Green in CI on the branch.** Push the branch and get one green CI run before
    you ask for review. A spec that only passes on your machine is not done.
 
@@ -192,8 +219,9 @@ on day one.
 - [ ] Verified any "can't automate" claim against the live page (the trap)
 - [ ] Skeleton: `test.describe` + intent comment + annotations; assertions parked
       with `test.fixme(true, 'reason')` if the feature isn't ready
-- [ ] Body written; selectors in the page object
-- [ ] Green locally 2–3 runs
+- [ ] Body written through Gate C (code reviewed) and Gate D (every failure decided)
+- [ ] Selectors in the page object; unconfirmed ones marked `// SELECTOR_DEBT`
+- [ ] Gate E: 3 local runs with a JSON report; `prep-check --phase 4 --results` GO
 - [ ] Type check / lint / freshness clean
 - [ ] Green in CI on the branch
 - [ ] Coverage-matrix row + tally line in the same commit

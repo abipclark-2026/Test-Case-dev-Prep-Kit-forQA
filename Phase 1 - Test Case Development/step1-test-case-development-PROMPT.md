@@ -191,20 +191,40 @@ double quotes. Keep every row on the 7-column schema. Produce a real `.csv` file
 >
 > 6. **Flag, don't fix.** If the AC is ambiguous, self-contradictory, or contains
 >    an apparent typo, still write the most sensible case AND add a short note in
->    that case's Expected Result: "... Confirm with spec author if <X>." Do not
->    silently correct the spec.
+>    that case's Expected Result: "... Confirm with spec author (<STORY>-C<n>):
+>    <X>?" Do not silently correct the spec.
+>    **Every open question gets a clarification ID** (`<STORY>-C1`, `<STORY>-C2`…,
+>    never reused). Add one row per question to the `## Clarification tracker`
+>    table in `<STORY>-clarification-log.md` (start from
+>    `templates/clarification-log.md`) with status `Open` and the case numbers it
+>    affects. Several cases can cite the same ID. The ID is what lets the story
+>    wait for answers across sessions without anyone losing track.
 >
 > **GATE B — Case Approval and Coverage Review. STOP and show me the draft cases
 > in chat. Do not write the CSV until I approve.**
 > Work one story at a time when I own several. For the story, show me:
 >
-> 0. **The draft cases**, numbered (1, 2, 3…), each as a short block:
->    - **Name** (exactly as it will appear in the CSV) and the AC line(s) it covers
->    - **Preconditions**, **Steps**, **Expected Result**: the full numbered text,
->      not a summary, so what I approve is what gets written
->    - **Spec** and **Time**
->    - Any "confirm with spec author" note, in bold
->    Mark each as positive / boundary / negative / conditional / variant.
+> 0. **The draft cases as one table**, one row per case, numbered in CSV order:
+>
+>    | # | Test case | AC | Type | Preconditions | Steps | Expected results |
+>    |---|---|---|---|---|---|---|
+>    | 9 | SD-102: Verify Add to cart changes the button to Remove and shows a cart badge of 1 | A4 | positive | Public demo site, logged in as standard_user; inventory page displayed; cart is empty | 1) Click Add to cart on Sauce Labs Backpack 2) Observe the button on that tile 3) Observe the cart icon | 1) Item is added 2) Button now reads "Remove" 3) Cart badge shows 1 |
+>
+>    - **Test case:** the Test Case Name exactly as it will appear in the CSV.
+>    - **AC:** the AC line(s) the case proves. **Type:** positive / boundary /
+>      negative / conditional / variant.
+>    - **Preconditions:** the full content, items separated by semicolons.
+>    - **Steps** and **Expected results:** every step and every expected result,
+>      numbered `1) 2) 3)` so each expected result lines up with its step.
+>    - **Shorten wording, never content.** You may trim filler words (the full
+>      sentences go in the CSV), but every precondition, step, value and expected
+>      result in the CSV must appear in this table, and exact values and copy
+>      (error text, prices, labels) appear word for word. The CSV may not add,
+>      drop or change anything the table shows.
+>    - Put any "confirm with spec author" note in **bold** inside the Expected
+>      results cell.
+>    - Spec and Time are not shown unless a row differs from the story's usual
+>      Spec link or is longer than `0:10`; list those exceptions under the table.
 > 1. A **variant × case-type table** (rows: each variant in scope; columns:
 >    positive, boundary, negative, conditional) with the case count in each cell
 >    and a dash where there is none. Beside each dash say whether it is *N/A
@@ -219,7 +239,8 @@ double quotes. Keep every row on the 7-column schema. Produce a real `.csv` file
 > above) D) Drop cases (which numbers) X) Other". **Then stop and wait.**
 >
 > - On anything other than **Approve**, apply the change and show the whole
->   revised case list again (marking what changed), then ask again.
+>   revised table again (mark changed rows **CHANGED** and new rows **NEW** in
+>   the # column, and list dropped cases under the table), then ask again.
 > - Only after I say **Approve** for a story, write that story's CSV, exactly as
 >   approved: no new cases, no rewording. If you find a problem while writing,
 >   stop and ask instead.
@@ -232,6 +253,8 @@ double quotes. Keep every row on the 7-column schema. Produce a real `.csv` file
 > into the traceability file.
 >
 > **Output:**
+> - Write `<STORY>-clarification-log.md` from `templates/clarification-log.md`,
+>   with the Phase 0 note and one `Open` tracker row per open question.
 > - Save the Preconditions + Acceptance Criteria I pasted, **unchanged**, as
 >   `<STORY>-acceptance-criteria.md` in the output folder, with a heading
 >   `## <STORY>: <title>` and each AC line starting with its id (`A1.`, `A2a.`).

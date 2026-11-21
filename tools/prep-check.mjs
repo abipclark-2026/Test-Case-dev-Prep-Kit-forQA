@@ -7,13 +7,25 @@
  *   node tools/prep-check.mjs --phase 1 --csv <cases.csv>
  *   node tools/prep-check.mjs --phase 2 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c
  *   node tools/prep-check.mjs --phase 3 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c
- *   node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<file2.spec.ts>]
+ *   node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<file2.spec.ts>] [--csv <cases.csv> --clarifications <log.md>] [--results <results.json>]
  *
  *   --ac        the story's acceptance criteria exactly as pasted from the ticket (a .md or .txt
  *               file). Every AC id in it (A1, A2, A2a...) must appear in the traceability file,
  *               so an AC line the assistant skipped cannot pass. If the file holds several
  *               stories, only the section under the heading naming this story is used.
  *               Missing: warning in Phase 2, error in Phase 3.
+ *   --clarifications  the story's clarification log. Its "## Clarification tracker" table gives
+ *               every spec question an ID (<STORY>-C1, <STORY>-C2...) and a status: Open, Answered,
+ *               Applied or Withdrawn. Every open note in a case must cite an ID from the tracker
+ *               ("Confirm with spec author (SD-104-C1)"). Phase 3 refuses Open and Answered rows.
+ *               In Phase 4, with --csv too, a test for a case that still has an open note must be
+ *               parked (test.fixme / test.skip), so unblocked cases can be automated while the
+ *               story waits at Phase 2.
+ *   --results   Phase 4, before the PR: the Playwright JSON report of a local run of these specs
+ *               (npx playwright test <specs> --repeat-each=3 --reporter=json > results.json).
+ *               Every test in the specs must be in the run; every test that is not parked must
+ *               pass in every repeat (no failures, no flaky results); the run must use
+ *               --repeat-each of at least 3. A spec edited after the run is a warning: re-run.
  *   --variants  the axes your product behaves differently on (user types, roles, browsers...).
  *               Every one needs a coverage decision. Use --variants none if the story has none.
  *               Missing: warning in Phase 2, error in Phase 3.
@@ -54,7 +66,7 @@
  * Every variant and edge category needs an explicit decision. A missing "coverage"
  * section is a warning in Phase 2 and an error in Phase 3.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 
 const HEADER = ['Feature Name', 'Test Case Name', 'Preconditions', 'Test Case Steps', 'Expected Result', 'Spec', 'Time'];
@@ -74,6 +86,9 @@ const OPEN_NOTE_RES = [
   /\?\?/,                                  // ?? or ???
 ];
 const openNote = (text) => OPEN_NOTE_RES.some((re) => re.test(text));
+// A clarification id: <STORY-ID>-C<n>, e.g. SD-104-C3.
+const CLAR_ID_RE = /\b[A-Z][A-Z0-9]+-\d+-C\d+\b/g;
+const CLAR_STATUSES = ['Open', 'Answered', 'Applied', 'Withdrawn'];
 // An AC id at the start of a line: "A1.", "- A3a.", "  * A12)".
 const AC_ID_RE = /^\s*(?:[-*+]\s+)?\*{0,2}(A\d+[a-z]?)\*{0,2}[.):]\s/gm;
 
@@ -146,7 +161,7 @@ function checkCsv(path) {
     if (!e) warn(`${tag}: Expected Result is not a numbered list.`);
     if (s && e && s.length !== e.length) warn(`${tag}: ${s.length} steps but ${e.length} expected results (should be parallel).`);
     if (pre && !listNumbers(pre)) warn(`${tag}: Preconditions are not a numbered list.`);
-    cases.push({ name, line, open: openNote(exp) || openNote(steps) || openNote(pre) });
+    cases.push({ name, line, open: openNote(exp) || openNote(steps) || openNote(pre), text: [pre, steps, exp].join('\n') });
   });
   return cases;
 }
@@ -264,17 +279,94 @@ function checkTrace(path, cases, phase, acPath) {
 }
 
 /**
+ * Read the "## Clarification tracker" table from the clarification log.
+ * Returns Map(id -> status), or null if the file or table is missing or broken.
+ */
+function readTracker(path) {
+  let text;
+  try { text = readFileSync(path, 'utf8'); } catch (e) { err(`Cannot read clarification log: ${e.message}`); return null; }
+  const lines = text.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^#{1,6}\s+Clarification tracker\s*$/i.test(l));
+  if (start < 0) { err(`${path}: no "## Clarification tracker" section. Copy the table from templates/clarification-log.md.`); return null; }
+  const rows = [];
+  for (const l of lines.slice(start + 1)) {
+    if (/^\s*\|/.test(l)) rows.push(l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim()));
+    else if (rows.length && l.trim() !== '') break;
+    else if (/^#{1,6}\s/.test(l)) break;
+  }
+  if (rows.length < 2) { err(`${path}: the Clarification tracker table is empty. Add a header row and a separator row, even if there are no questions yet.`); return null; }
+  const head = rows[0].map((h) => h.toLowerCase());
+  const iId = head.indexOf('id'), iStatus = head.indexOf('status');
+  if (iId < 0 || iStatus < 0) { err(`${path}: the Clarification tracker needs "ID" and "Status" columns.`); return null; }
+  const tracker = new Map();
+  for (const r of rows.slice(1)) {
+    if (r.every((c) => /^:?-+:?$/.test(c) || c === '')) continue; // separator row
+    const id = (r[iId] ?? '').replace(/[*`]/g, '');
+    const status = (r[iStatus] ?? '').replace(/[*`]/g, '');
+    if (!/^[A-Z][A-Z0-9]+-\d+-C\d+$/.test(id)) { err(`Clarification tracker: "${id}" is not an ID like SD-104-C1.`); continue; }
+    if (tracker.has(id)) err(`Clarification tracker: ${id} appears more than once.`);
+    if (!CLAR_STATUSES.includes(status)) { err(`Clarification tracker ${id}: status must be ${CLAR_STATUSES.join(', ')} (got "${status}").`); continue; }
+    tracker.set(id, status);
+  }
+  return tracker;
+}
+
+/**
+ * Cases vs. the tracker. An open note must cite an Open clarification; an Answered one means the
+ * answer is not applied yet. Phase 3 accepts only Applied and Withdrawn.
+ */
+function checkClarifications(cases, tracker, phase) {
+  const cited = new Set();
+  for (const c of cases) {
+    const ids = [...new Set(c.text.match(CLAR_ID_RE) ?? [])];
+    ids.forEach((id) => cited.add(id));
+    if (!c.open) continue;
+    const tag = `Row ${c.line} "${c.name.slice(0, 60)}"`;
+    if (!ids.length) { (phase >= 2 ? err : warn)(`${tag}: open question has no clarification ID. Write it as "Confirm with spec author (<STORY>-C<n>)" and add that ID to the tracker.`); continue; }
+    for (const id of ids) {
+      const st = tracker.get(id);
+      if (!st) err(`${tag}: cites ${id}, which is not in the Clarification tracker.`);
+      else if (st === 'Answered') err(`${tag}: ${id} is Answered but the case still carries the open note. Apply the answer, then mark ${id} Applied.`);
+      else if (st !== 'Open') err(`${tag}: ${id} is ${st} but the case still carries an open note. Replace the note with the answer.`);
+    }
+  }
+  const counts = Object.fromEntries(CLAR_STATUSES.map((s) => [s, 0]));
+  for (const [id, st] of tracker) {
+    counts[st]++;
+    if (phase >= 3 && (st === 'Open' || st === 'Answered')) err(`Clarification ${id} is ${st}. Phase 3 needs every clarification Applied or Withdrawn.`);
+    else if (st === 'Answered') warn(`Clarification ${id} is Answered: apply it to its cases in Phase 3, then mark it Applied.`);
+    if (st === 'Open' && !cited.has(id)) warn(`Clarification ${id} is Open but no case cites it. Add the ID to the affected case(s), or mark it Withdrawn.`);
+  }
+  console.log(`Clarifications: ${tracker.size}  (${CLAR_STATUSES.map((s) => `${s} ${counts[s]}`).join(', ')})`);
+}
+
+/** Phase 4: names of cases that are still blocked on an open clarification. */
+function blockedCases(csvPath, logPath) {
+  const before = errors.length;
+  const cases = checkCsv(csvPath);
+  const tracker = logPath ? readTracker(logPath) : null;
+  if (errors.length > before) return null;
+  const blocked = new Map();
+  for (const c of cases) {
+    const ids = [...new Set(c.text.match(CLAR_ID_RE) ?? [])].filter((id) => !tracker || ['Open', 'Answered'].includes(tracker.get(id)));
+    if (c.open || ids.length) blocked.set(c.name, ids.length ? ids.join(', ') : 'an open question');
+  }
+  return blocked;
+}
+
+/**
  * Phase 4: every test() body must reach an expect() or be parked. Comments are stripped first, so
  * "// TODO: expect(...)" does not count as an assertion. A file wrapped in test.describe.skip is
  * parked as a whole.
  */
-function checkSpec(path) {
+function checkSpec(path, blocked, titles) {
   let text;
   try { text = readFileSync(path, 'utf8'); } catch (e) { err(`Cannot read spec: ${e.message}`); return; }
   const code = text
     .replace(/\/\*[\s\S]*?\*\//g, '')          // block comments
     .replace(/(^|[^:\\])\/\/.*$/gm, '$1');      // line comments (not the // in https://)
   if (/\btest\.describe\.skip\s*\(/.test(code) && !/\btest\.describe\s*\(/.test(code)) {
+    for (const m of code.matchAll(/(?<![.\w])test\s*\(\s*(['"`])((?:(?!\1).)*)\1/g)) titles?.set(m[2], { path, parked: true });
     console.log(`${path}: whole file parked with test.describe.skip`);
     return;
   }
@@ -285,11 +377,73 @@ function checkSpec(path) {
     const body = code.slice(m.index, i + 1 < starts.length ? starts[i + 1].index : code.length);
     const lineNo = code.slice(0, m.index).split('\n').length;
     const title = m[2].slice(0, 60);
-    if (/\btest\.(fixme|skip)\s*\(/.test(body)) parked++;
+    const parkedHere = /\btest\.(fixme|skip)\s*\(/.test(body);
+    if (blocked?.has(m[2]) && !parkedHere) {
+      err(`${path}:${lineNo} "${title}": the case is still blocked on ${blocked.get(m[2])}. Park it with test.fixme(true, 'blocked on ${blocked.get(m[2]).split(', ')[0]}') until the answer is applied.`);
+      return;
+    }
+    titles?.set(m[2], { path, parked: parkedHere });
+    if (parkedHere) parked++;
     else if (/\bexpect(\.\w+)?\s*\(/.test(body)) asserting++;
     else err(`${path}:${lineNo} "${title}": test() has no expect() and is not parked. It will pass and count as green. Add an assertion or test.fixme(true, 'reason').`);
   });
   console.log(`${path}: ${starts.length} test(s): ${asserting} asserting, ${parked} parked`);
+}
+
+/**
+ * Phase 4, pre-PR: check a Playwright JSON report against the spec files.
+ * specTitles: Map(title -> { path, parked }) built while checking the specs.
+ */
+function checkResults(path, specTitles, specPaths) {
+  let r;
+  try {
+    // Windows PowerShell's ">" writes UTF-16; accept that as well as UTF-8.
+    const buf = readFileSync(path);
+    let text = buf[0] === 0xff && buf[1] === 0xfe ? buf.toString('utf16le') : buf.toString('utf8');
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+    r = JSON.parse(text);
+  } catch (e) { err(`Cannot read results file: ${e.message}. Produce it with --reporter=json.`); return; }
+  if (!Array.isArray(r.suites)) { err(`${path}: not a Playwright JSON report (no "suites"). Run with --reporter=json.`); return; }
+  const repeat = Math.min(...(r.config?.projects ?? [{}]).map((p) => Number(p.repeatEach ?? 1)));
+  if (!(repeat >= 3)) err(`Results: the run used --repeat-each=${Number.isFinite(repeat) ? repeat : 1}. Run every spec at least 3 times: --repeat-each=3.`);
+  for (const e of r.errors ?? []) err(`Results: the run itself reported an error: ${String(e.message ?? e).split('\n')[0].slice(0, 160)}`);
+  const ran = new Map(); // title -> [statuses]
+  const firstError = new Map();
+  const walk = (suite) => {
+    for (const sp of suite.specs ?? []) {
+      for (const t of sp.tests ?? []) {
+        if (!ran.has(sp.title)) ran.set(sp.title, []);
+        ran.get(sp.title).push(t.status);
+        if (t.status !== 'expected' && t.status !== 'skipped' && !firstError.has(sp.title)) {
+          const res = (t.results ?? []).find((x) => x.error || x.errors?.length);
+          const msg = res?.error?.message ?? res?.errors?.[0]?.message;
+          if (msg) firstError.set(sp.title, msg.replace(/\u001b\[[0-9;]*m/g, '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 3).join(' | ').slice(0, 240));
+        }
+      }
+    }
+    for (const child of suite.suites ?? []) walk(child);
+  };
+  r.suites.forEach(walk);
+  let passed = 0, parkedN = 0;
+  for (const [title, info] of specTitles) {
+    const st = ran.get(title);
+    if (!st) { err(`Results: "${title.slice(0, 70)}" (${info.path}) is not in the run. Re-run the full spec, not a filtered subset.`); continue; }
+    if (info.parked) { parkedN++; continue; }
+    const bad = st.filter((x) => x !== 'expected');
+    if (!bad.length) { passed++; continue; }
+    const why = firstError.get(title) ? ` First error: ${firstError.get(title)}` : '';
+    if (bad.includes('flaky')) err(`Results: "${title.slice(0, 70)}" is flaky (passed only on retry in ${bad.filter((x) => x === 'flaky').length} of ${st.length} runs). Find the cause before the PR; do not raise retries.${why}`);
+    if (bad.includes('unexpected')) err(`Results: "${title.slice(0, 70)}" failed in ${bad.filter((x) => x === 'unexpected').length} of ${st.length} runs.${why}`);
+    if (bad.includes('skipped')) err(`Results: "${title.slice(0, 70)}" was skipped in the run but is not parked in the spec. Did the spec change after the run?`);
+  }
+  for (const title of ran.keys()) if (!specTitles.has(title)) warn(`Results: "${title.slice(0, 70)}" is in the run but not in the specs checked (renamed, or another spec?).`);
+  const started = Date.parse(r.stats?.startTime ?? '');
+  if (Number.isFinite(started)) {
+    for (const f of specPaths) {
+      try { if (statSync(f).mtimeMs > started) warn(`Results: ${f} was edited after this run started. Re-run before the PR so the results match the code.`); } catch { /* reported elsewhere */ }
+    }
+  }
+  console.log(`Run: --repeat-each=${repeat}; ${passed} test(s) passed every run, ${parkedN} parked`);
 }
 
 // ---- main ----
@@ -297,17 +451,22 @@ let values;
 try {
   ({ values } = parseArgs({ options: {
     phase: { type: 'string' }, csv: { type: 'string' }, trace: { type: 'string' },
-    ac: { type: 'string' }, variants: { type: 'string' }, spec: { type: 'string' },
+    ac: { type: 'string' }, variants: { type: 'string' }, spec: { type: 'string' }, clarifications: { type: 'string' }, results: { type: 'string' },
   } }));
 } catch (e) { console.error(e.message); process.exit(2); }
 if (values.variants !== undefined) {
   VARIANTS = values.variants.trim().toLowerCase() === 'none' ? [] : values.variants.split(',').map((s) => s.trim()).filter(Boolean);
 }
 const phase = Number(values.phase);
-const usage = 'Usage:\n  node tools/prep-check.mjs --phase 1 --csv <cases.csv>\n  node tools/prep-check.mjs --phase 2|3 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c|none\n  node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<more>]';
+const usage = 'Usage:\n  node tools/prep-check.mjs --phase 1 --csv <cases.csv>\n  node tools/prep-check.mjs --phase 2|3 --csv <cases.csv> --trace <traceability.json> --ac <ac.md> --variants a,b,c|none\n  node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>[,<more>] [--csv <cases.csv> --clarifications <log.md>] [--results <results.json>]\n  add --clarifications <log.md> to any phase to check open questions against the tracker';
 if (phase === 4) {
   if (!values.spec) { console.error(usage); process.exit(2); }
-  for (const f of values.spec.split(',').map((s) => s.trim()).filter(Boolean)) checkSpec(f);
+  const blocked = values.csv ? blockedCases(values.csv, values.clarifications) : null;
+  if (blocked?.size) console.log(`Blocked cases (must stay parked): ${blocked.size}`);
+  const specPaths = values.spec.split(',').map((s) => s.trim()).filter(Boolean);
+  const titles = new Map();
+  for (const f of specPaths) checkSpec(f, blocked, titles);
+  if (values.results) checkResults(values.results, titles, specPaths);
   for (const w of warnings) console.log(`WARN  ${w}`);
   for (const e of errors) console.log(`ERROR ${e}`);
   console.log(`\nPhase 4: ${errors.length ? 'NO-GO' : 'GO'}  (${errors.length} error(s), ${warnings.length} warning(s))`);
@@ -321,6 +480,10 @@ if (![1, 2, 3].includes(phase) || !values.csv || (phase > 1 && !values.trace)) {
 const cases = checkCsv(values.csv);
 console.log(`Cases: ${cases.length}`);
 if (phase > 1 && cases.length) checkTrace(values.trace, cases, phase, values.ac);
+if (values.clarifications && cases.length) {
+  const tracker = readTracker(values.clarifications);
+  if (tracker) checkClarifications(cases, tracker, phase);
+}
 
 const open = cases.filter((c) => c.open);
 if (open.length) {

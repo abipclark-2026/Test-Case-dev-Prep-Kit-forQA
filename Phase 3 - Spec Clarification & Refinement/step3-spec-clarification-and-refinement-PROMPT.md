@@ -96,10 +96,17 @@ a wrong case.
 >    the test-management case later — note any rename in the log).
 >
 > 5. **Resolve the "confirm with spec author" notes** that Phase 1 left in
->    Expected Result cells: if the author answered, replace the note with the
->    confirmed behavior; if still unanswered, keep the note AND list it as an
->    open question in the readiness report (an open question is a no-go — see the
->    exit gate).
+>    Expected Result cells, using the `## Clarification tracker` in
+>    `<STORY>-clarification-log.md`. For each answered ID: mark it `Answered`,
+>    run the ambiguity pass (6a), apply the answer to every case that cites the
+>    ID, replacing the note with the confirmed behavior and the ID
+>    (e.g. "...letters are accepted (confirmed, <STORY>-C2, 2026-11-20)"), then
+>    mark it `Applied`. A question that no longer matters is `Withdrawn`, with
+>    the reason in the answers table. If an ID is still unanswered, keep the note
+>    and the `Open` status, list it in the readiness report, and stop: the story
+>    stays parked at Phase 2 (see "Waiting on spec clarifications" in
+>    `QA-sprint-prep-cycle.md`). Phase 3 cannot pass with an `Open` or `Answered`
+>    row.
 >
 > 6. **Run the consistency sweep** and report findings:
 >    - duplicate Test Case Names (the upsert key — duplicates collide downstream)

@@ -18,9 +18,9 @@
 
 | AC | Vague or missing | Becomes |
 |---|---|---|
-| A3 | "immediately" is not measurable | Q2 |
-| A3b | no tie-break rule; two products cost $15.99 | Q1 |
-| A2 / A6 | silent on whether the sort survives navigation | Q3 |
+| A3 | "immediately" is not measurable | SD-102-C2 |
+| A3b | no tie-break rule; two products cost $15.99 | SD-102-C1 |
+| A2 / A6 | silent on whether the sort survives navigation | SD-102-C3 |
 | A9 | "responsive" has no pass criterion beyond a width | triage → manual |
 
 ## Variant matrix (Gate A)
@@ -56,7 +56,7 @@
    set time (give it)  C) Don't know, flag it. `[Answer]: A`
 3. After Price (high to low) → detail page → Back to products, which sort is
    selected? A) Still Price (high to low)  B) Resets to Name (A to Z)  C) Don't
-   know. `[Answer]: C`, then clarified in Phase 3 (log Q3).
+   know. `[Answer]: C`, then clarified in Phase 3 (SD-102-C3).
 4. Should problem_user, error_user and visual_user be covered in this story? A)
    Yes, separate cases  B) No, one shared case  C) Defer to a separate story.
    `[Answer]: C` → SD-110.

@@ -50,7 +50,7 @@ test.describe('Inventory - Sorting and cart badge (SD-102)', () => {
   }, async ({ page }) => {
     await test.step('Select Price (low to high) and note the tie order', async () => {});
     await test.step('Select Price (high to low) and note the tie order again', async () => {});
-    test.fixme(true, 'blocked on page objects; tie rule confirmed in clarification log Q1');
+    test.fixme(true, 'blocked on page objects; tie rule confirmed in clarification SD-102-C1');
   });
 
   test('SD-102: Verify cart badge counts up to 6 when all products are added (boundary - maximum)', {

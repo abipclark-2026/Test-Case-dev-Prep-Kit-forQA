@@ -15,6 +15,7 @@
  *   "trace": "SD-102-traceability.json",         // needed for phase 2 and 3
  *   "ac":    "SD-102-acceptance-criteria.md",    // the AC as pasted; required from phase 3
  *   "variants": ["admin", "editor"],             // required from phase 3; [] if none apply
+ *   "clarifications": "SD-102-clarification-log.md", // optional; checks notes against its tracker
  *   "specs": ["skeleton/inventory.spec.ts"]      // optional; Phase 4 check on these files
  * }
  *
@@ -75,6 +76,7 @@ for (const folder of folders) {
   const args = [prepCheck, '--phase', String(phase), '--csv', join(folder, story.csv)];
   if (phase > 1) args.push('--trace', join(folder, story.trace));
   if (story.ac) args.push('--ac', join(folder, story.ac));
+  if (story.clarifications) args.push('--clarifications', join(folder, story.clarifications));
   if (Array.isArray(story.variants)) args.push('--variants', story.variants.length ? story.variants.join(',') : 'none');
 
   console.log(`\n=== ${story.story ?? label} (${label}) — Phase ${phase} gate ===`);
@@ -85,7 +87,8 @@ for (const folder of folders) {
 
   if (Array.isArray(story.specs) && story.specs.length) {
     console.log(`--- ${story.story ?? label}: Phase 4 spec check ---`);
-    const specRun = spawnSync(process.execPath, [prepCheck, '--phase', '4', '--spec', story.specs.map((f) => join(folder, f)).join(',')], { encoding: 'utf8' });
+    const specRun = spawnSync(process.execPath, [prepCheck, '--phase', '4', '--spec', story.specs.map((f) => join(folder, f)).join(','),
+      '--csv', join(folder, story.csv), ...(story.clarifications ? ['--clarifications', join(folder, story.clarifications)] : [])], { encoding: 'utf8' });
     process.stdout.write(specRun.stdout ?? '');
     process.stderr.write(specRun.stderr ?? '');
     if (specRun.status === 2) verdict = 'BROKEN';

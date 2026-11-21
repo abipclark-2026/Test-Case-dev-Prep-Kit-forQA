@@ -6,6 +6,7 @@
   "csv": "SD-102-inventory-test-cases.csv",
   "trace": "SD-102-traceability.json",
   "ac": "00-input-acceptance-criteria.md",
+  "clarifications": "SD-102-clarification-log.md",
   "variants": [
     "standard_user",
     "locked_out_user",

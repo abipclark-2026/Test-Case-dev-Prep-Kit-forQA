@@ -83,10 +83,22 @@ prompt. Playwright is only needed if you carry on to Phase 4.
    questions in any wording ("confirm with spec author", "TBD", "check with
    the PO", "??").
 6. **Phase 4.** Triage with `automation-in-execution.md`, then use the skeleton
-   prompt for the cases you chose to automate. Before the PR, run
-   `node tools/prep-check.mjs --phase 4 --spec <file.spec.ts>`: it fails any
-   `test()` that has no `expect()` and is not parked with `test.fixme`.
+   prompt for the cases you chose to automate. `prep-check --phase 4 --spec
+   <file.spec.ts>` fails any `test()` that has no `expect()` and is not parked.
+   Then write the bodies with the step 5 prompt, which stops for your review at
+   **Gate C** (the code, before it is saved) and **Gate D** (every run's
+   errors, with a likely cause and a proposed fix that you approve). Before the
+   PR, **Gate E**: run the story's specs 3 times with a JSON report and pass it
+   to `prep-check --phase 4 --results <results.json>`. It refuses failures,
+   flaky tests, fewer than 3 runs and runs that left tests out.
 7. **Log what you learned** in `LESSONS.md`.
+
+**Waiting on spec answers?** Give each open question an ID (`SD-104-C1`) and a
+row in the story's Clarification tracker, leave the story parked at Phase 2, and
+move on to your next story. Cases that are not blocked can go ahead to Phase 4;
+blocked ones stay parked with `test.fixme`. When the answers arrive, start a new
+session with `RESUME-A-STORY-PROMPT.md`. Details: "Waiting on spec
+clarifications" in `QA-sprint-prep-cycle.md`.
 
 **Variants** are the axes your product behaves differently on (user types,
 roles, browsers). There is no default: name yours with
@@ -203,16 +215,17 @@ Built for and used by a QA team during sprint prep:
 ```
 README.md                         this file
 START-HERE.md                     orientation
+RESUME-A-STORY-PROMPT.md          pick a story back up in a new session
 QA-sprint-prep-cycle.md           the standard: phases, gates, guardrails
 Phase 1 - Test Case Development/  Phase 1 prompt
 Phase 2 - AC Traceability Mapping/ Phase 2 prompt
 Phase 3 - Spec Clarification & Refinement/ Phase 3 prompt
-Phase 4 - Automation Skeletons/   skeleton prompt + automation guide
+Phase 4 - Automation Skeletons/   skeleton prompt, body/run/pre-PR prompt (Gates C-E), automation guide
 tools/prep-check.mjs              GO / NO-GO checker (Node 18+, no dependencies)
 tools/check-all.mjs               runs prep-check on every story folder (used by CI)
 tests/                            tests for the checker (node --test)
 stories/                          one folder per story: the team's shared prep work
-templates/                        story.json, coverage matrix, test-repo CI + PR checklist
+templates/                        story.json, clarification log, coverage matrix, test-repo CI + PR checklist
 .github/workflows/prep-check.yml  CI: blocks a PR when any story is NO-GO
 examples/saucedemo/               input and a full sample run
 LESSONS.md                        lessons log template

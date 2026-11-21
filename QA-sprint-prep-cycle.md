@@ -25,10 +25,13 @@ QA-sprint-prep-cycle.md                                  ← you are here (the m
 Phase 1 - Test Case Development/…PROMPT.md               ← Phase 1 prompt
 Phase 2 - AC Traceability Mapping/…PROMPT.md             ← Phase 2 prompt
 Phase 3 - Spec Clarification & Refinement/…PROMPT.md     ← Phase 3 prompt
-Phase 4 - Automation Skeletons/…PROMPT.md                ← Phase 4 skeleton prompt
+Phase 4 - Automation Skeletons/step4-…PROMPT.md          ← Phase 4 skeleton prompt
+Phase 4 - Automation Skeletons/step5-…PROMPT.md          ← Phase 4 body, run and pre-PR prompt (Gates C, D, E)
 Phase 4 - Automation Skeletons/automation-in-execution.md ← Phase 4 guide
 tools/prep-check.mjs                                     ← exit-gate checker (Node 18+, no install)
 examples/saucedemo/                                      ← a full sample run
+RESUME-A-STORY-PROMPT.md                                 ← pick a story back up in a new session
+templates/clarification-log.md                           ← clarification log + tracker template
 LESSONS.md                                               ← running lessons log
 ```
 
@@ -190,10 +193,12 @@ log).
   state/timing, interaction), then asks lettered, `[Answer]:`-style questions
   about whatever it is unsure of. Your answers shape the cases.
 - **Gate B, Case Approval and Coverage Review (before any CSV is written).**
-  The assistant drafts the cases in chat only and shows them in full, one story
-  at a time. Alongside it shows a variant × case-type table with holes marked,
+  The assistant drafts the cases in chat only and shows them as one table, one
+  story at a time: a row per case with the Test Case Name, AC line, type,
+  preconditions, steps and expected results (numbered so each expected result
+  lines up with its step, exact values and copy word for word). Alongside it shows a variant × case-type table with holes marked,
   a what-is-covered list per AC, and up to five fresh edge-case questions. You
-  approve, request changes, add or drop cases; it re-shows the revised list
+  approve, request changes, add or drop cases; it re-shows the revised table
   until you approve. Only then does it write the CSV, exactly as approved. Both
   gates are written down in `<STORY>-coverage-questions.md` and
   `<STORY>-coverage-decisions.json`.
@@ -239,8 +244,12 @@ matrix) + the **gap table**, the highest-value output of the whole cycle.
 **Loop-back:** gaps go back to Phase 1: write the missing cases, then re-map.
 
 **Exit gate:** every AC line is covered by a case OR consciously flagged as a
-waived/open gap; `node tools/prep-check.mjs --phase 2 --csv <file> --trace <json> --ac <ac.md> --variants <list>`
-reports GO (open GAP rows are fine at this point).
+waived/open gap; `node tools/prep-check.mjs --phase 2 --csv <file> --trace <json> --ac <ac.md> --variants <list> --clarifications <log.md>`
+reports GO (open GAP rows and `Open` clarifications are fine at this point).
+
+**Waiting for answers?** A story whose clarifications are still open stays at
+Phase 2. See "Waiting on spec clarifications" below: you move on to your next
+story, and you can start Phase 4 on the cases that are not blocked.
 
 ---
 
@@ -292,12 +301,13 @@ have added anything worth keeping to `LESSONS.md`.
 > designed cases.
 
 **Prompt (skeleton step):** `Phase 4 - Automation Skeletons/step4-skeleton-generation-PROMPT.md`
+**Prompt (body, run, pre-PR):** `Phase 4 - Automation Skeletons/step5-body-and-validation-PROMPT.md`
 **Guide (whole phase):** `Phase 4 - Automation Skeletons/automation-in-execution.md`
 **Produces:** parked spec skeletons → completed specs → PRs → regression → smoke.
 
-Phase 4 is a *workflow*, not one promptable task: the **skeleton** step has a
-prompt; triage, body, validate and promote are human/iterative work in the
-guide. The four load-bearing pieces:
+Phase 4 is a *workflow*, not one promptable task. Triage and promotion are
+human decisions in the guide; the **skeleton** step and the **body** step have
+prompts. The load-bearing pieces:
 
 1. **Triage — the 4-gate filter (don't automate everything).** Automate only
    when all four hold; otherwise it's a manual case (file it with a `MANUAL — `
@@ -322,8 +332,24 @@ guide. The four load-bearing pieces:
    A bare `test()` with a `// TODO` body **passes** and is counted as green
    coverage. This is the single worst mistake in the phase.
 
-4. **The promotion bar (the gate into regression):**
-   `green locally 2–3 runs` → `green in CI on the branch` →
+4. **Review gates while the body is written** (the step 5 prompt). The
+   assistant writes code in small batches and stops three times:
+   - **Gate C — code review:** you see every line, a locator table (how each
+     selector was confirmed) and an assertion table (which CSV expected result
+     each `expect` proves) before anything is saved.
+   - **Gate D — run and error review:** after every run, each failure is shown
+     verbatim with its likely cause (test bug / product bug / environment) and a
+     proposed next step. You decide: fix, park as a defect, or investigate.
+     Weakening a test to make it pass (changing the expected value to match the
+     app, loosening an assertion, adding sleeps or retries) is never a fix.
+   - **Gate E — pre-PR run:** type check and lint clean, the story's specs run
+     **3 times** with a JSON report, and
+     `prep-check --phase 4 --spec <specs> --csv <csv> --clarifications <log> --results <results.json>`
+     prints GO. It refuses failures, flaky results, fewer than 3 repeats, and a
+     run that left tests out. No GO, no PR.
+
+5. **The promotion bar (the gate into regression):**
+   `Gate E GO (3 clean local runs)` → `green in CI on the branch` →
    `commit + PR` → **reviewer reviews** → **reviewer merges to `main`**
    (merging is what adds it to regression). A newly merged spec rides the normal
    regression set first; once it runs a sprint clean it earns a place in
@@ -332,6 +358,53 @@ guide. The four load-bearing pieces:
 **Exit gate:** spec merged to `main` by the reviewer; bookkeeping done (coverage
 matrix row + tally line in the same commit; cases synced to your test-management
 tool).
+
+---
+
+## Waiting on spec clarifications (stories that take several sessions)
+
+Spec answers often take days. A story waiting on them must not block your other
+stories, and nothing about it should live only in one chat or one person's head.
+
+**1. Park the story at Phase 2.** Phase 2 allows open questions. Leave
+`"phase": 2` in its `story.json` and open the PR: CI stays green, and the story
+waits there for as long as it needs. Start your next story. When the answers
+arrive, resume it (step 4) and move it to Phase 3.
+
+**2. Give every question an ID and track it.** Each open question gets an ID,
+`<STORY>-C1`, `<STORY>-C2`…, and a row in the `## Clarification tracker` table of
+`<STORY>-clarification-log.md` (template: `templates/clarification-log.md`):
+
+| ID | Question | Raised | Owner | Ticket | Status | Cases |
+|---|---|---|---|---|---|---|
+| SD-104-C1 | All fields empty: which error shows? | 2026-11-20 | Spec author | JIRA-123 | Open | 5 |
+
+Every case the question affects carries a note that cites the ID:
+`Confirm with spec author (SD-104-C1): which error shows?` Status moves
+**Open → Answered → Applied** (or **Withdrawn** if the question stops
+mattering). With `--clarifications <log.md>` (or `"clarifications"` in
+`story.json`), `prep-check` checks that:
+- every open note cites an ID that is in the tracker and still `Open`;
+- an `Answered` ID is not left unapplied in a case;
+- Phase 3 has no `Open` or `Answered` rows.
+
+**3. Automate what is not blocked.** Phase 4 may start once the story passes
+Phase 2, for every case with no open note. Cases that cite an `Open`
+clarification are skeletoned but stay parked with
+`test.fixme(true, 'blocked on SD-104-C1')`; `prep-check --phase 4 --csv <csv>
+--clarifications <log.md>` fails any test for a blocked case that asserts. When
+the answer is applied, remove the `fixme` and write the assertion. Phase 3 stays
+strict: the story's cases are uploaded only when every clarification is Applied
+or Withdrawn.
+
+**4. Resume in a new session.** An AI assistant does not remember the last
+session, so the story folder is the memory. Paste `RESUME-A-STORY-PROMPT.md`
+with the folder and any new answers: the assistant reports where the story
+stands, applies the answers, and tells you the next step.
+
+**When a late answer changes behavior or an AC line,** the normal loop-back
+applies: re-map in Phase 2 first. Search the folder and the test repo for the ID
+to find every case and parked test it touches.
 
 ---
 
@@ -404,8 +477,9 @@ downstream.
 | 1 | `Phase 1 - Test Case Development/step1-test-case-development-PROMPT.md` | 7-column CSV |
 | 2 | `Phase 2 - AC Traceability Mapping/testcase-AC-map-PROMPT.md` | Coverage Map + gap table + traceability JSON |
 | 3 | `Phase 3 - Spec Clarification & Refinement/step3-spec-clarification-and-refinement-PROMPT.md` | final cases + clarification log |
-| 4 | `Phase 4 - Automation Skeletons/step4-skeleton-generation-PROMPT.md` + `automation-in-execution.md` | parked skeletons → merged specs → regression |
+| 4 | `Phase 4 - Automation Skeletons/step4-skeleton-generation-PROMPT.md`, `step5-body-and-validation-PROMPT.md` + `automation-in-execution.md` | parked skeletons → reviewed bodies (Gates C, D) → Gate E report → merged specs → regression |
 | 1–3 gates | `tools/prep-check.mjs` | GO / NO-GO per phase |
+| any | `RESUME-A-STORY-PROMPT.md` | status report; answers applied |
 | any | `LESSONS.md` | dated lessons |
 
 ---
@@ -422,12 +496,15 @@ downstream.
 - [ ] **Phase 2:** Coverage Map built; `<STORY>-traceability.json` saved (with
       the variant + edge `coverage` section); two-way check done; gap table
       ranked; gaps looped back to Phase 1 and re-mapped; `prep-check --phase 2` GO
-- [ ] **Phase 3:** clarifications resolved + logged (ambiguity pass on each
-      answer); behavior/AC changes re-mapped in Phase 2; waivers have reasons;
+- [ ] **Waiting?** every open question has an ID + tracker row; story parked
+      at Phase 2; unblocked cases may go to Phase 4 (blocked ones stay parked)
+- [ ] **Phase 3:** clarifications resolved + logged (every tracker row Applied
+      or Withdrawn; ambiguity pass on each answer); behavior/AC changes re-mapped in Phase 2; waivers have reasons;
       `prep-check --phase 3` GO; cases uploaded; `LESSONS.md` updated if
       anything is worth keeping
 - [ ] **Phase 4:** triage done (automate-now / backlog / manual); skeletons
-      parked (never a blank `test()`); body written; green locally 2–3 ×; green
+      parked (never a blank `test()`); body written through Gates C and D;
+      Gate E: type check + lint clean, 3 runs, `prep-check --phase 4 --results` GO; green
       in CI on the branch; PR opened; coverage bookkeeping in the same commit;
       manual siblings filed with the `MANUAL — ` prefix
 - [ ] **Promotion:** reviewer merged to `main`; stable a sprint → flag for smoke
@@ -449,4 +526,8 @@ A workable lightweight version (adapt it to your tracker):
   owner works it and moves it to Review; you confirm your understanding, loop
   back to To Do if more is needed, then move it to Review Approved; the spec
   owner finalizes the story and closes it.
-- Record the outcome in the Phase 3 clarification log.
+- Give the question an ID (`<STORY>-C<n>`) in the story's Clarification tracker
+  as soon as it is raised, and put the ticket link in its Ticket column. The
+  ticket and the tracker row move together: Open while the ticket is open,
+  Answered when the owner replies, Applied once the cases are updated.
+- Record the outcome in the answers table of the clarification log.

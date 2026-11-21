@@ -12,7 +12,7 @@ stories/
     SD-201-traceability.json        Phase 2 (finished in Phase 3)
     SD-201-coverage-questions.md    Phase 1 Gates 0 and A
     SD-201-testcase-to-AC-map.md    Phase 2
-    SD-201-clarification-log.md     Phase 3
+    SD-201-clarification-log.md     Phase 0 note + Clarification tracker (from Phase 1), answers (Phase 3)
     SD-201-readiness-report.md      Phase 3
 ```
 
@@ -32,3 +32,12 @@ fails the check, so the PR can't merge until the gap is filled or waived with a
 reason. You can run the same command locally before you push.
 
 The worked example lives in `examples/saucedemo/` and is checked the same way.
+
+## Waiting on spec answers
+
+A story with open clarifications stays at `"phase": 2` (open questions are
+allowed there), so it never blocks the PR or your other stories. Every open
+question has an ID (`SD-201-C1`) in the Clarification tracker, and every
+affected case cites it. Add `"clarifications": "<STORY-ID>-clarification-log.md"`
+to `story.json` so CI checks the notes against the tracker. When answers
+arrive, use `RESUME-A-STORY-PROMPT.md` in a new session.

@@ -3,18 +3,33 @@
 > **Sample.** The spec-author answers are invented for the demo to show how the
 > log, the routing and the ambiguity pass work.
 
-| # | Question | Raised in | Who answered | Answer | Route | What changed |
+## Clarification tracker
+
+One row per spec question, from the moment it is raised. Cases cite the ID in
+their note ("Confirm with spec author (SD-102-C1)") until the answer is applied.
+
+| ID | Question | Raised | Owner | Ticket | Status | Cases |
 |---|---|---|---|---|---|---|
-| Q1 | How are equal prices ordered in a price sort? | Phase 1, Gate A | Spec author (sample) | "Fall back to Name (A to Z), in both price directions." | add/remove a case | Added case 7 (tie order); updated cases 5 and 6 expected prices to show the tie pair; "confirm with spec author" note closed. |
-| Q2 | What does "immediately" mean in A3? | Phase 1, ambiguity pass | Spec author (sample) | "The list reorders in place. No page navigation." | add/remove a case | Added case 8 (reorder without leaving the page). A3 wording unchanged. |
-| Q3 | Does the sort option survive a trip to a detail page? | Phase 1, Gate A | Spec author (sample) | First answer: "Probably resets, I think." **Ambiguity pass hit:** "probably", "I think". Follow-up sent: "Please confirm: is Name (A to Z) selected after Back to products?" Second answer: "Yes. It always returns to Name (A to Z)." | add/remove a case | Added case 20 (sort resets after detail → back). |
-| Q4 | Should problem_user, error_user, visual_user be covered here? | Phase 1, Gate A | Product owner (sample) | "Not in this story. Track as SD-110." | no change | Variant decisions recorded as Deferred → SD-110. |
-| Q5 | Is cart persistence across logout in scope (A6)? | Phase 3 | Spec author (sample) | "No. A6 is only about moving between the inventory and detail pages." | wording | No case added; A6 stays as written. |
+| SD-102-C1 | How are equal prices ordered in a price sort? | Phase 1, Gate A | Spec author (sample) | — | Applied | 5, 6, 7 |
+| SD-102-C2 | What does "immediately" mean in A3? | Phase 1, ambiguity pass | Spec author (sample) | — | Applied | 8 |
+| SD-102-C3 | Does the sort option survive a trip to a detail page? | Phase 1, Gate A | Spec author (sample) | — | Applied | 20 |
+| SD-102-C4 | Should problem_user, error_user, visual_user be covered here? | Phase 1, Gate A | Product owner (sample) | — | Applied | none (Deferred to SD-110) |
+| SD-102-C5 | Is cart persistence across logout in scope (A6)? | Phase 3 | Spec author (sample) | — | Applied | none |
+
+## Answers and what changed
+
+| ID | Question | Raised in | Who answered | Answer | Route | What changed |
+|---|---|---|---|---|---|---|
+| SD-102-C1 | How are equal prices ordered in a price sort? | Phase 1, Gate A | Spec author (sample) | "Fall back to Name (A to Z), in both price directions." | add/remove a case | Added case 7 (tie order); updated cases 5 and 6 expected prices to show the tie pair; "confirm with spec author" note closed. |
+| SD-102-C2 | What does "immediately" mean in A3? | Phase 1, ambiguity pass | Spec author (sample) | "The list reorders in place. No page navigation." | add/remove a case | Added case 8 (reorder without leaving the page). A3 wording unchanged. |
+| SD-102-C3 | Does the sort option survive a trip to a detail page? | Phase 1, Gate A | Spec author (sample) | First answer: "Probably resets, I think." **Ambiguity pass hit:** "probably", "I think". Follow-up sent: "Please confirm: is Name (A to Z) selected after Back to products?" Second answer: "Yes. It always returns to Name (A to Z)." | add/remove a case | Added case 20 (sort resets after detail → back). |
+| SD-102-C4 | Should problem_user, error_user, visual_user be covered here? | Phase 1, Gate A | Product owner (sample) | "Not in this story. Track as SD-110." | no change | Variant decisions recorded as Deferred → SD-110. |
+| SD-102-C5 | Is cart persistence across logout in scope (A6)? | Phase 3 | Spec author (sample) | "No. A6 is only about moving between the inventory and detail pages." | wording | No case added; A6 stays as written. |
 
 ## Routing summary
 
-- **Wording only:** 1 (Q5)
-- **Add/remove a case (Phase 1 work inside Phase 3):** 3 (Q1, Q2, Q3)
+- **Wording only:** 1 (SD-102-C5)
+- **Add/remove a case (Phase 1 work inside Phase 3):** 3 (SD-102-C1, C2, C3)
 - **Behavior or AC change (needs a Phase 2 re-map):** 0
 - **Waived AC lines:** A9 (visual layout check; manual sibling filed)
 
